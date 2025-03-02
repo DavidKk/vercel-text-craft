@@ -37,20 +37,24 @@ export default function TextComparator() {
       </div>
 
       <div className="flex gap-1 w-full">
-        <TextCompareEditor
-          targetText={rightText}
-          similarityThreshold={similarityThreshold}
-          storageKey="text-comparator-left"
-          onChange={setLeftText}
-          showOnlyDiffs={showOnlyDiffs}
-        />
-        <TextCompareEditor
-          targetText={leftText}
-          similarityThreshold={similarityThreshold}
-          storageKey="text-comparator-right"
-          onChange={setRightText}
-          showOnlyDiffs={showOnlyDiffs}
-        />
+        <div className="w-1/2 min-h-[500px] h-[70vh]">
+          <TextCompareEditor
+            targetText={rightText}
+            similarityThreshold={similarityThreshold}
+            storageKey="text-comparator-left"
+            onChange={setLeftText}
+            showOnlyDiffs={showOnlyDiffs}
+          />
+        </div>
+        <div className="w-1/2 min-h-[500px] h-[70vh]">
+          <TextCompareEditor
+            targetText={leftText}
+            similarityThreshold={similarityThreshold}
+            storageKey="text-comparator-right"
+            onChange={setRightText}
+            showOnlyDiffs={showOnlyDiffs}
+          />
+        </div>
       </div>
     </div>
   )
