@@ -1,40 +1,34 @@
-[![Build Status](https://github.com/DavidKk/vercel-file-fusion/actions/workflows/coverage.workflow.yml/badge.svg)](https://github.com/DavidKk/vercel-file-fusion/actions/workflows/coverage.workflow.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![中文](https://img.shields.io/badge/%E6%96%87%E6%A1%A3-%E4%B8%AD%E6%96%87-green?style=flat-square&logo=docs)](https://github.com/DavidKk/vercel-file-fusion/blob/main/README.zh-CN.md) [![English](https://img.shields.io/badge/docs-English-green?style=flat-square&logo=docs)](https://github.com/DavidKk/vercel-file-fusion/blob/main/README.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![中文](https://img.shields.io/badge/%E6%96%87%E6%A1%A3-%E4%B8%AD%E6%96%87-green?style=flat-square&logo=docs)](https://github.com/DavidKk/vercel-text-craft/blob/main/README.zh-CN.md) [![English](https://img.shields.io/badge/docs-English-green?style=flat-square&logo=docs)](https://github.com/DavidKk/vercel-text-craft/blob/main/README.md)
 
-# 文件融合服务
+# 文本处理工具
 
-[online](https://vercel-file-fusion.vercel.app)
+[在线体验](https://vercel-text-craft.vercel.app)
 
-一个简单易用的文件批处理服务，支持批量压缩、加密解密和重命名文件。所有处理均在本地完成，不依赖服务器。
+一个简单易用的文本处理工具，提供文本比较和分析功能。
 
-- **用途**：提供快速的文件批处理功能，提升工作效率。
-- **适用场景**：文件批量压缩、加密解密、重命名等操作。
+- **用途**：提供快速的文本比较和分析功能，提升文本处理效率。
+- **适用场景**：代码对比、文档比较、文本差异分析等操作。
 
 ## 部署到 Vercel
 
-[![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FYourUsername%2Fvercel-file-fusion)
+[![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FDavidKk%2Fvercel-text-craft)
 
 ## 功能
 
-- 批量压缩文件。
-- 批量加密解密文件。
-- 批量重命名文件。
-- 报销小工具。
-- 音频文件内嵌信息小工具。
-- 支持 Vercel 部署，简单快速上线。
+- 逐行文本比较分析
+- 相似度匹配
+- 差异高亮显示
+- 支持大文本处理
+- 实时比较结果
+- 支持 Vercel 部署，简单快速上线
 
-## 注意事项
+## 文本比较工具
 
-- **本地处理**：所有文件处理操作均在本地完成，不会上传到服务器。
-- **数据安全**：确保文件和数据的安全性，不会泄露用户隐私。
+该工具提供了强大的文本比较功能，支持：
 
-## 报销小工具
+- 逐行分析：精确识别文本之间的差异。
+- 相似度匹配：智能识别相似内容。
+- 实时比较：即时查看比较结果。
+- 差异高亮：直观展示文本差异。
 
-该工具分析 PDF 电子发票中的金额，并应用算法确定最佳报销发票组合。它能够根据输入的金额高效地识别最合适的发票集，确保报销的最佳匹配。
-
-## 音频嵌入信息工具
-
-该工具用于将元数据嵌入到 FLAC 音频文件中。目前，它仅支持嵌入歌词和 FLAC 文件。请确保歌词文件名与音频文件名匹配。
-
-## 音频文件信息嵌入工具
-
-该工具用于将元数据嵌入到 FLAC 音频文件中。目前，它支持嵌入歌词和封面图像。请确保歌词文件名与音频文件名匹配，并且封面图像文件位于相同目录中。
+适用于代码审查、文档版本对比、文本差异分析等场景。

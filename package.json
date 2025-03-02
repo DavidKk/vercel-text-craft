@@ -1,7 +1,7 @@
 {
   "name": "vercel-text-craft",
   "version": "0.1.0",
-  "description": "Quick processing of plain text.",
+  "description": "A text comparison tool that supports code and plain text analysis, providing features like similarity matching and difference highlighting.",
   "private": true,
   "repository": {
     "type": "git",
