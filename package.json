@@ -24,6 +24,7 @@
     "ok": "pnpm format && pnpm lint && pnpm build && pnpm test"
   },
   "dependencies": {
+    "@vercel/analytics": "^1.5.0",
     "ahooks": "^3.8.4",
     "feather-icons-react": "^0.7.1",
     "next": "15.1.3",
