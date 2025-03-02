@@ -104,7 +104,7 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
     : undefined
 
   return (
-    <div className="w-[calc(50%-0.5rem)]">
+    <div className="w-1/2">
       <div className="w-full h-1">
         {processingBatch && (
           <div className="w-full h-full bg-gray-200 rounded-full overflow-hidden">
