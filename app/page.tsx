@@ -1,11 +1,17 @@
+import Meta, { generate } from '@/components/Meta'
+
+const { generateMetadata, metaProps } = generate({
+  title: 'Text Craft - Powerful Text Processing Toolkit',
+  description:
+    "Text Craft is a powerful text processing toolkit that provides text comparison and similarity matching features. Supporting line-by-line analysis, real-time comparison, and difference highlighting, it's perfect for code review and document version comparison scenarios.",
+})
+
+export { generateMetadata }
+
 export default function Home() {
   return (
-    <div className="flex flex-col items-center pt-20">
-      <h1 className="text-4xl font-bold mb-4">Text Craft</h1>
-      <p className="text-xl mt-4 w-3/4 mx-auto">
-        A powerful text processing toolkit that offers text comparison and similarity matching features. Supports line-by-line analysis, real-time comparison, and difference
-        highlighting, ideal for code review and document version comparison scenarios.
-      </p>
+    <div className="flex flex-col items-center p-10 pt-20">
+      <Meta {...metaProps} />
     </div>
   )
 }
