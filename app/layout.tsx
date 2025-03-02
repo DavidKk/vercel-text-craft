@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from '@vercel/analytics/react'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Nav } from './Nav'
 import './globals.css'
@@ -15,15 +15,18 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'File Fusion',
-  description: 'local file utilities from browser',
+  title: 'Text Craft',
+  description:
+    "Text Craft is a powerful text processing toolkit that provides text comparison and similarity matching features. Supporting line-by-line analysis, real-time comparison, and difference highlighting, it's perfect for code review and document version comparison scenarios.",
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
+interface RootLayoutProps {
   children: React.ReactNode
-}>) {
+}
+
+export default function RootLayout(props: Readonly<RootLayoutProps>) {
+  const { children } = props
+
   return (
     <html lang="en">
       <Analytics />
