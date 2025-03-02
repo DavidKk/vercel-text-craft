@@ -14,10 +14,12 @@ export interface TextCompareEditorProps {
   storageKey: string
   /** Callback function when text content changes */
   onChange: (value: string) => void
+  /** Whether to show only different lines */
+  showOnlyDiffs?: boolean
 }
 
 export default function TextCompareEditor(props: TextCompareEditorProps) {
-  const { targetText, similarityThreshold, storageKey, onChange } = props
+  const { targetText, similarityThreshold, storageKey, onChange, showOnlyDiffs } = props
 
   const [text, setText] = useState<string>('')
   const debouncedText = useDebounce(text, { wait: 300 })
@@ -92,6 +94,15 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
     return processTextComparison(debouncedText, debouncedTargetText)
   }, [debouncedText, debouncedTargetText, debouncedThreshold])
 
+  const hiddenLines = showOnlyDiffs
+    ? segments.reduce<number[]>((acc, segment, index) => {
+        if (segment.isPresent) {
+          acc.push(index + 1)
+        }
+        return acc
+      }, [])
+    : undefined
+
   return (
     <div className="w-[calc(50%-0.5rem)]">
       <div className="w-full h-1">
@@ -102,7 +113,7 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
         )}
       </div>
 
-      <ReactEditor onChange={combineFuncs(setText, onChange)} segments={segments} storageKey={storageKey} />
+      <ReactEditor onChange={combineFuncs(setText, onChange)} segments={segments} storageKey={storageKey} hiddenLines={hiddenLines} />
     </div>
   )
 }

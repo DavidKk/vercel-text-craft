@@ -74,7 +74,7 @@ export default React.memo(
 
     return (
       <>
-        <style>{`.editor > div{padding-inline: 10px}`}</style>
+        <style>{`.editor > div{display:table;padding-inline: 10px}`}</style>
         <div className="editor w-full overflow-x-auto flex-1 outline-none whitespace-pre leading-[21px]" ref={editorRef} onInput={onInput} onPaste={onPaste} contentEditable />
       </>
     )
