@@ -60,8 +60,9 @@ export default function ReactEditor(props: ReactEditorProps) {
 
   useEffect(() => {
     if (value && editorRef.current) {
+      const html = value.split('\n').map((item) => `<div>${item}</div>`).join('')
+      editorRef.current.innerHTML = html
       setValue(value)
-      editorRef.current.innerHTML = `<pre>${value}</pre>`
     }
   }, [value])
 
