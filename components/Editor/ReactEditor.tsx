@@ -5,9 +5,23 @@ import FeatherIcon from 'feather-icons-react'
 import { combineFuncs } from '@/utils/func'
 import BaseEditor from './BaseEditor'
 
-export interface TextSegment {
-  /** The text content of the segment */
-  text: string
+export interface TextPosition {
+  /** Start line number of the text */
+  startLine: number
+  /** End line number of the text */
+  endLine: number
+  /** Start column number of the text in the line */
+  startColumn: number
+  /** End column number of the text in the line */
+  endColumn: number
+}
+
+export interface TextSegmentPosition extends TextPosition {
+  /** The text contents of the segment */
+  texts: string[]
+}
+
+export interface TextSegment extends TextSegmentPosition {
   /** Whether this segment is present in the comparison text */
   isPresent: boolean
   /** Optional array of line numbers where this segment matches */
@@ -37,8 +51,16 @@ export default function ReactEditor(props: ReactEditorProps) {
   const lineNumbers = useMemo(() => internalValue.split('\n').length + 1, [internalValue])
 
   const { diffRules, hiddenRules } = useMemo(() => {
-    const diffRules = segments?.map(({ isPresent }, index) => (!isPresent ? `.editor-container.${uid} .editor > div:nth-child(${index + 1})` : '')) || []
-    const hiddenRules = hiddenLines?.map((lineNum) => `.editor-container.${uid} .editor > div:nth-child(${lineNum})`) || []
+    const diffRules: string[] = []
+    segments?.forEach(({ isPresent, startLine, endLine }) => {
+      if (isPresent) {
+        return
+      }
+
+      diffRules.push(`.${uid} .editor > div:nth-child(n+${startLine}):nth-child(-n+${endLine})`)
+    })
+
+    const hiddenRules = hiddenLines?.map((lineNum) => `.${uid} .editor > div:nth-child(${lineNum})`) || []
 
     return {
       diffRules: diffRules.filter(Boolean),
@@ -60,7 +82,10 @@ export default function ReactEditor(props: ReactEditorProps) {
 
   useEffect(() => {
     if (value && editorRef.current) {
-      const html = value.split('\n').map((item) => `<div>${item}</div>`).join('')
+      const html = value
+        .split('\n')
+        .map((item) => `<div>${item}</div>`)
+        .join('')
       editorRef.current.innerHTML = html
       setValue(value)
     }

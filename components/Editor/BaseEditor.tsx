@@ -19,8 +19,8 @@ export default React.memo(
         return
       }
 
-      const text = editorRef.current.innerText
-      const html = editorRef.current.innerHTML
+      const { innerHTML: html, innerText } = editorRef.current
+      const text = innerText.replaceAll('\n\n', '\n')
       if (text) {
         onChange(text, html)
       }
@@ -74,7 +74,7 @@ export default React.memo(
 
     return (
       <>
-        <style>{`.editor > div{display:table;padding-inline: 10px} .editor.disabled{pointer-events:none;opacity:0.7}`}</style>
+        <style>{`.editor>div{width:100%;padding-inline:10px;white-space:pre;}.editor.disabled{pointer-events:none;opacity:0.7}`}</style>
         <div
           className={`editor w-full overflow-x-auto flex-1 outline-none whitespace-pre leading-[21px]`}
           ref={editorRef}

@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { useDebounce } from 'ahooks'
-import ReactEditor, { type TextSegment } from '@/components/Editor/ReactEditor'
+import ReactEditor from '@/components/Editor/ReactEditor'
+import type { TextSegment } from '@/components/Editor/ReactEditor'
 import { combineFuncs } from '@/utils/func'
+import { processInputText, calculateSimilarity } from '@/app/text/utils'
 
 export interface TextCompareEditorProps {
   /** The target text to compare against */
@@ -32,15 +34,10 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
   const [processedLines, setProcessedLines] = useState(0)
 
   const processTextComparison = (sourceText: string, targetText: string) => {
-    // Using NFKC normalization to process text, ensuring:
-    // 1. Convert full-width characters to half-width
-    // 2. Transform combining characters (like diacritics) into precomposed forms
-    // 3. Unify visually similar characters with different encodings
-    // This enhances the accuracy and consistency of text comparison
-    const aLines = sourceText.split('\n').map((item) => item.normalize('NFKC').trim())
-    const bLines = targetText.split('\n').map((item) => item.normalize('NFKC').trim())
-    const batchSize = 20
+    const aLines = processInputText(sourceText)
+    const bLines = processInputText(targetText)
 
+    const batchSize = 20
     setTotalLines(aLines.length)
     setProcessedLines(0)
 
@@ -55,19 +52,15 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
       const startIdx = currentBatch * batchSize
       const endIdx = Math.min(startIdx + batchSize, aLines.length)
       const batch = aLines.slice(startIdx, endIdx)
-
-      const batchResults = batch.map<TextSegment>((text) => {
-        if (!text) {
-          return { text: '', isPresent: true }
+      const batchResults = batch.map<TextSegment>(({ texts, ...props }) => {
+        if (!texts.length) {
+          return { ...props, texts, isPresent: true }
         }
 
-        const maxSimilarity = Math.max(
-          ...bLines.map((bLine) => {
-            return calculateSimilarity(text, bLine)
-          })
-        )
-
-        return { text, isPresent: maxSimilarity >= debouncedThreshold }
+        // calculate similarity between the current string and each string in the target text
+        const maxSimilarity = Math.max(...bLines.flatMap((bLine) => texts.map((text) => calculateSimilarity(text, bLine.texts[0]))))
+        const isPresent = maxSimilarity >= debouncedThreshold
+        return { ...props, texts, isPresent }
       })
 
       setSegments((prev) => [...prev, ...batchResults])
@@ -94,14 +87,18 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
     return processTextComparison(debouncedText, debouncedTargetText)
   }, [debouncedText, debouncedTargetText, debouncedThreshold])
 
-  const hiddenLines = showOnlyDiffs
-    ? segments.reduce<number[]>((acc, segment, index) => {
-        if (segment.isPresent) {
-          acc.push(index + 1)
-        }
-        return acc
-      }, [])
-    : undefined
+  let hiddenLines: number[] = []
+  if (showOnlyDiffs) {
+    segments.forEach(({ isPresent, startLine, endLine }) => {
+      if (!isPresent) {
+        return
+      }
+
+      new Array(endLine - startLine + 1).fill(0).forEach((_, i) => {
+        hiddenLines.push(startLine + i)
+      })
+    })
+  }
 
   return (
     <>
@@ -116,30 +113,4 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
       <ReactEditor onChange={combineFuncs(setText, onChange)} segments={segments} storageKey={storageKey} hiddenLines={hiddenLines} />
     </>
   )
-}
-
-function calculateSimilarity(str1: string, str2: string): number {
-  if (str1 === str2) {
-    return 1
-  }
-
-  if (str1.length === 0 || str2.length === 0) {
-    return 0
-  }
-
-  const matrix: number[][] = []
-  for (let i = 0; i <= str1.length; i++) {
-    matrix[i] = [i]
-    for (let j = 1; j <= str2.length; j++) {
-      if (i === 0) {
-        matrix[i][j] = j
-      } else {
-        const cost = str1[i - 1] === str2[j - 1] ? 0 : 1
-        matrix[i][j] = Math.min(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j - 1] + cost)
-      }
-    }
-  }
-
-  const maxLength = Math.max(str1.length, str2.length)
-  return 1 - matrix[str1.length][str2.length] / maxLength
 }
