@@ -26,14 +26,16 @@ export function processInputText(text: string) {
     return processInputCollection(normalizedText)
   }
 
-  return normalizedText.split('\n').map((item, index) => ({
-    texts: [item.trim()],
-    line: index + 1,
-    startLine: index + 1,
-    endLine: index + 1,
-    startColumn: 0,
-    endColumn: item.length,
-  }))
+  return normalizedText.split('\n').map(
+    (item, index) =>
+      ({
+        texts: [item.trim()],
+        startLine: index + 1,
+        endLine: index + 1,
+        startColumn: 0,
+        endColumn: item.length,
+      }) satisfies TextSegmentPosition
+  )
 }
 
 export function processInputCollection(text: string) {
@@ -121,4 +123,15 @@ export function calculateSimilarity(str1: string, str2: string): number {
 
   const maxLength = Math.max(str1.length, str2.length)
   return 1 - matrix[str1.length][str2.length] / maxLength
+}
+
+/**
+ * Calculate the maximum similarity between two arrays of strings
+ */
+export function calculateMaxSimilarity(sourceTexts: string[], targetTexts: string[]): number {
+  if (!sourceTexts.length || !targetTexts.length) {
+    return 0
+  }
+
+  return Math.max(...sourceTexts.flatMap((sourceText) => targetTexts.map((targetText) => calculateSimilarity(sourceText, targetText))))
 }

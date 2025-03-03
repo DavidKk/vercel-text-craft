@@ -5,7 +5,7 @@ import { useDebounce } from 'ahooks'
 import ReactEditor from '@/components/Editor/ReactEditor'
 import type { TextSegment } from '@/components/Editor/ReactEditor'
 import { combineFuncs } from '@/utils/func'
-import { processInputText, calculateSimilarity } from '@/app/text/utils'
+import { processInputText, calculateMaxSimilarity } from '@/app/text/utils'
 
 export interface TextCompareEditorProps {
   /** The target text to compare against */
@@ -53,13 +53,12 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
       const endIdx = Math.min(startIdx + batchSize, aLines.length)
       const batch = aLines.slice(startIdx, endIdx)
       const batchResults = batch.map<TextSegment>(({ texts, ...props }) => {
-        if (!texts.length) {
-          return { ...props, texts, isPresent: true }
-        }
-
-        // calculate similarity between the current string and each string in the target text
-        const maxSimilarity = Math.max(...bLines.flatMap((bLine) => texts.map((text) => calculateSimilarity(text, bLine.texts[0]))))
+        const maxSimilarity = calculateMaxSimilarity(
+          texts,
+          bLines.flatMap(({ texts }) => texts)
+        )
         const isPresent = maxSimilarity >= debouncedThreshold
+
         return { ...props, texts, isPresent }
       })
 
