@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import TextCompareEditor from './TextCompareEditor'
-import { mockTextList, mockJsonList } from './mock-data'
-import { mockTomlList } from './mock-toml-data'
+import { mockTextList, mockJsonList, mockTomlList } from './mock-data'
 
 export default function TextComparator() {
   const [leftText, setLeftText] = useState('')
@@ -39,12 +38,14 @@ export default function TextComparator() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button className="px-3 py-1 text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50 mr-2" onClick={handleMockData}>
-            Try JSON
-          </button>
-          <button className="px-3 py-1 text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50" onClick={handleTomlMockData}>
-            Try TOML
-          </button>
+          <div className="flex gap-2">
+            <button className="px-3 py-1 text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50" onClick={handleMockData}>
+              Try JSON
+            </button>
+            <button className="hidden px-3 py-1 text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50" onClick={handleTomlMockData}>
+              Try TOML
+            </button>
+          </div>
 
           <div className="flex items-center">
             <button

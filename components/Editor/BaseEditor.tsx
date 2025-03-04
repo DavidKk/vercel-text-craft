@@ -9,8 +9,15 @@ export interface BaseEditorProps {
   onChange: (text: string, html: string) => void
 }
 
+export interface BaseEditorRef {
+  saveCache: () => void
+  getText: () => string
+  getHtml: () => string
+  setHtml: (html: string) => void
+}
+
 export default React.memo(
-  React.forwardRef<HTMLDivElement, BaseEditorProps>((props, ref) => {
+  React.forwardRef<BaseEditorRef, BaseEditorProps>((props, ref) => {
     const { storageKey, onChange } = props
     const editorRef = useRef<HTMLDivElement>(null)
 
@@ -50,6 +57,44 @@ export default React.memo(
       })
     }
 
+    const saveCache = () => {
+      if (!(storageKey && editorRef.current)) {
+        return
+      }
+
+      const { innerHTML } = editorRef.current
+      localStorage.setItem(storageKey, innerHTML)
+    }
+
+    const getText = () => {
+      if (!editorRef.current) {
+        return ''
+      }
+
+      const { innerHTML } = editorRef.current
+      return innerHTML
+    }
+
+    const getHtml = () => {
+      if (!editorRef.current) {
+        return ''
+      }
+
+      const { innerText } = editorRef.current
+      return innerText
+    }
+
+    const setHtml = (html: string) => {
+      if (!editorRef.current) {
+        return
+      }
+
+      editorRef.current.innerHTML = html
+      saveCache()
+    }
+
+    useImperativeHandle(ref, () => ({ saveCache, getText, getHtml, setHtml }))
+
     useEffect(() => {
       if (!(storageKey && editorRef.current)) {
         return
@@ -65,8 +110,6 @@ export default React.memo(
       const { innerText, innerHTML } = editorRef.current
       onChange(innerText, innerHTML)
     }, [storageKey])
-
-    useImperativeHandle(ref, () => editorRef.current!)
 
     return (
       <>

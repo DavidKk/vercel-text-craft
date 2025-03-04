@@ -3,7 +3,7 @@
 import React, { useMemo, useState, useRef, useId, useEffect } from 'react'
 import FeatherIcon from 'feather-icons-react'
 import { combineFuncs } from '@/utils/func'
-import BaseEditor from './BaseEditor'
+import BaseEditor, { type BaseEditorRef } from './BaseEditor'
 
 export interface TextPosition {
   /** Start line number of the text */
@@ -26,6 +26,8 @@ export interface TextSegment extends TextSegmentPosition {
   isPresent: boolean
   /** Optional array of line numbers where this segment matches */
   matchingLines?: number[]
+  /** Array of line numbers that are ignored due to overlapping with other segments */
+  ignoredLines?: number[]
 }
 
 export interface ReactEditorProps {
@@ -46,18 +48,23 @@ export default function ReactEditor(props: ReactEditorProps) {
   const rawUid = useId()
   const uid = useMemo(() => `${rawUid.replace(/[^a-zA-Z0-9]/g, '')}`, [rawUid])
 
-  const editorRef = useRef<HTMLDivElement>(null)
+  const editorRef = useRef<BaseEditorRef>(null)
   const [internalValue, setValue] = useState<string>('')
   const lineNumbers = useMemo(() => internalValue.split('\n').length + 1, [internalValue])
 
   const { diffRules, hiddenRules } = useMemo(() => {
     const diffRules: string[] = []
-    segments?.forEach(({ isPresent, startLine, endLine }) => {
+    segments?.forEach(({ isPresent, startLine, endLine, ignoredLines = [] }) => {
       if (isPresent) {
         return
       }
 
-      diffRules.push(`.${uid} .editor > div:nth-child(n+${startLine}):nth-child(-n+${endLine})`)
+      // 生成每一行的规则，但排除被忽略的行
+      for (let line = startLine; line <= endLine; line++) {
+        if (!ignoredLines.includes(line)) {
+          diffRules.push(`.${uid} .editor > div:nth-child(${line})`)
+        }
+      }
     })
 
     const hiddenRules = hiddenLines?.map((lineNum) => `.${uid} .editor > div:nth-child(${lineNum})`) || []
@@ -73,7 +80,8 @@ export default function ReactEditor(props: ReactEditorProps) {
       return
     }
 
-    const lines = editorRef.current.innerText.split('\n')
+    const innerText = editorRef.current.getText()
+    const lines = innerText.split('\n')
     const visibleLines = lines.filter((_, index) => !hiddenLines?.includes(index + 1))
     const content = visibleLines.join('\n')
 
@@ -89,7 +97,7 @@ export default function ReactEditor(props: ReactEditorProps) {
       .split('\n')
       .map((item) => `<div>${item}</div>`)
       .join('')
-    editorRef.current.innerHTML = html
+    editorRef.current.setHtml(html)
     setValue(value)
   }
 

@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import { useDebounce } from 'ahooks'
 import ReactEditor from '@/components/Editor/ReactEditor'
 import type { TextSegment } from '@/components/Editor/ReactEditor'
-import { processInputText, calculateMaxSimilarity } from '@/app/text/utils'
+import { calculateMaxSimilarity } from '../share/similarity'
+import { processInputText } from '../share/text-process'
 
 export interface TextCompareEditorProps {
   value: string
@@ -33,38 +34,81 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
   const [processedLines, setProcessedLines] = useState(0)
 
   const processTextComparison = (sourceText: string, targetText: string) => {
+    // Process input texts into line segments for comparison
     const aLines = processInputText(sourceText)
     const bLines = processInputText(targetText)
 
+    // Initialize batch processing parameters
     const batchSize = 20
     setTotalLines(aLines.length)
     setProcessedLines(0)
 
     let currentBatch = 0
     let isCancelled = false
+    let overlappedLines = new Set<number>()
 
     const processNextBatch = () => {
       if (isCancelled) {
         return
       }
 
+      // Calculate the range of lines for the current batch
       const startIdx = currentBatch * batchSize
       const endIdx = Math.min(startIdx + batchSize, aLines.length)
       const batch = aLines.slice(startIdx, endIdx)
+
+      // Calculate similarity for each segment in the batch against all target lines
       const batchResults = batch.map<TextSegment>(({ texts, ...props }) => {
         const maxSimilarity = calculateMaxSimilarity(
           texts,
           bLines.flatMap(({ texts }) => texts)
         )
 
+        // Mark segment as present if similarity exceeds threshold
         const isPresent = maxSimilarity >= debouncedThreshold
         return { ...props, texts, isPresent }
       })
 
-      setSegments((prev) => [...prev, ...batchResults])
+      // Filter out segments that overlap with matched lines
+      const filteredResults = batchResults.filter((segment) => {
+        if (segment.isPresent) {
+          return true
+        }
+
+        // Detect lines that overlap with matched segments
+        const ignoredLines: number[] = []
+        for (let line = segment.startLine; line <= segment.endLine; line++) {
+          // Check if current line is part of any matched segment
+          const isOverlapped = batchResults.some((other) => other !== segment && other.isPresent && line >= other.startLine && line <= other.endLine)
+
+          if (isOverlapped) {
+            ignoredLines.push(line)
+          }
+        }
+
+        // Remove segment if all its lines are ignored
+        if (ignoredLines.length === segment.endLine - segment.startLine + 1) {
+          return false
+        }
+
+        segment.ignoredLines = ignoredLines
+
+        // Track non-ignored lines for future overlap checks
+        for (let line = segment.startLine; line <= segment.endLine; line++) {
+          if (!ignoredLines.includes(line)) {
+            overlappedLines.add(line)
+          }
+        }
+
+        return true
+      })
+
+      // Update state with processed segments and progress
+      setSegments((prev) => [...prev, ...filteredResults])
       setProcessedLines((prev) => Math.min(endIdx, prev + batchResults.length))
       currentBatch++
 
+      // Schedule next batch or finish processing
       if (endIdx < aLines.length && !isCancelled) {
         setTimeout(processNextBatch, 0)
       } else {
@@ -72,10 +116,12 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
       }
     }
 
+    // Start batch processing
     setSegments([])
     setProcessingBatch(true)
     processNextBatch()
 
+    // Cleanup function for cancelling ongoing processing
     return () => {
       isCancelled = true
     }
@@ -87,14 +133,16 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
 
   let hiddenLines: number[] = []
   if (showOnlyDiffs) {
-    segments.forEach(({ isPresent, startLine, endLine }) => {
+    segments.forEach(({ isPresent, startLine, endLine, ignoredLines = [] }) => {
       if (!isPresent) {
         return
       }
 
-      new Array(endLine - startLine + 1).fill(0).forEach((_, i) => {
-        hiddenLines.push(startLine + i)
-      })
+      for (let line = startLine; line <= endLine; line++) {
+        if (!ignoredLines.includes(line)) {
+          hiddenLines.push(line)
+        }
+      }
     })
   }
 
