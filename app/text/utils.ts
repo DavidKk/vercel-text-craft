@@ -26,16 +26,24 @@ export function processInputText(text: string) {
     return processInputCollection(normalizedText)
   }
 
-  return normalizedText.split('\n').map(
-    (item, index) =>
-      ({
-        texts: [item.trim()],
-        startLine: index + 1,
-        endLine: index + 1,
-        startColumn: 0,
-        endColumn: item.length,
-      }) satisfies TextSegmentPosition
-  )
+  const lines = normalizedText.split('\n')
+  const positions: TextSegmentPosition[] = []
+  lines.forEach((item, index) => {
+    const text = item.trim()
+    if (!text) {
+      return
+    }
+
+    positions.push({
+      texts: [text],
+      startLine: index + 1,
+      endLine: index + 1,
+      startColumn: 0,
+      endColumn: item.length,
+    })
+  })
+
+  return positions
 }
 
 export function processInputCollection(text: string) {

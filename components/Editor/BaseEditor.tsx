@@ -21,16 +21,12 @@ export default React.memo(
 
       const { innerHTML: html, innerText } = editorRef.current
       const text = innerText.replaceAll('\n\n', '\n')
-      if (text) {
-        onChange(text, html)
-      }
 
-      if (storageKey) {
-        localStorage.setItem(storageKey, html)
-      }
+      onChange(text, html)
+      storageKey && localStorage.setItem(storageKey, html)
     }
 
-    const onPaste = () => {
+    const onPaste: React.ClipboardEventHandler<HTMLDivElement> = () => {
       setTimeout(() => {
         if (!editorRef.current) {
           return

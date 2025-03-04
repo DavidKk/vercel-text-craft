@@ -57,8 +57,8 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
           texts,
           bLines.flatMap(({ texts }) => texts)
         )
-        const isPresent = maxSimilarity >= debouncedThreshold
 
+        const isPresent = maxSimilarity >= debouncedThreshold
         return { ...props, texts, isPresent }
       })
 
@@ -103,8 +103,14 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
     <>
       <div className="w-full h-1">
         {processingBatch && (
-          <div className="w-full h-full bg-gray-200 rounded-full overflow-hidden">
-            <div className="h-full bg-indigo-500 transition-all duration-200" style={{ width: `${(processedLines / totalLines) * 100}%` }} />
+          <div className="w-full h-full bg-gray-200 rounded-full overflow-hidden animate-fade-in">
+            <div
+              className="h-full bg-indigo-500 transition-transform duration-300 origin-left"
+              style={{
+                transform: `scaleX(${processedLines / totalLines})`,
+                willChange: 'transform',
+              }}
+            />
           </div>
         )}
       </div>
