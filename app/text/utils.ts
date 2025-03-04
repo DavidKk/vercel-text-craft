@@ -2,7 +2,7 @@ import { Parser } from 'acorn'
 import type { TextSegmentPosition } from '@/components/Editor/ReactEditor'
 
 /**
- * 检查文本是否为有效的 JSON 数组
+ * Check if the text is a valid JSON array
  */
 export function isJsonArray(text: string) {
   try {
@@ -18,7 +18,7 @@ export function isJsonArray(text: string) {
 }
 
 /**
- * handlle text input, parse text to text segments
+ * Handle text input, parse text to text segments
  */
 export function processInputText(text: string) {
   const normalizedText = text.normalize('NFKC')
