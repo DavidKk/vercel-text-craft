@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import TextCompareEditor from './TextCompareEditor'
+import { mockTextList, mockJsonList } from './mock-data'
 
 export default function TextComparator() {
   const [leftText, setLeftText] = useState('')
@@ -9,9 +10,14 @@ export default function TextComparator() {
   const [similarityThreshold, setSimilarityThreshold] = useState(1)
   const [showOnlyDiffs, setShowOnlyDiffs] = useState(false)
 
+  const handleMockData = () => {
+    setLeftText(mockTextList)
+    setRightText(JSON.stringify(mockJsonList, null, 2))
+  }
+
   return (
     <div className="w-full flex flex-col gap-2">
-      <div className="flex">
+      <div className="flex justify-between">
         <div className="flex items-center gap-2">
           <label className="text-xs font-medium">Similarity Threshold:</label>
           <input
@@ -26,19 +32,29 @@ export default function TextComparator() {
           <span className="text-xs">{(similarityThreshold * 100).toFixed(0)}%</span>
         </div>
 
-        <div className="ml-4 flex items-center">
-          <button className={`px-3 py-1 text-xs rounded-l-sm ${!showOnlyDiffs ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-700'}`} onClick={() => setShowOnlyDiffs(false)}>
-            All
+        <div className="flex items-center gap-2">
+          <button className="px-3 py-1 text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50" onClick={handleMockData}>
+            Try it now
           </button>
-          <button className={`px-3 py-1 text-xs rounded-r-sm ${showOnlyDiffs ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-700'}`} onClick={() => setShowOnlyDiffs(true)}>
-            Diffs
-          </button>
+
+          <div className="flex items-center">
+            <button
+              className={`px-3 py-1 text-xs rounded-l-sm ${!showOnlyDiffs ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+              onClick={() => setShowOnlyDiffs(false)}
+            >
+              All
+            </button>
+            <button className={`px-3 py-1 text-xs rounded-r-sm ${showOnlyDiffs ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-700'}`} onClick={() => setShowOnlyDiffs(true)}>
+              Diffs
+            </button>
+          </div>
         </div>
       </div>
 
       <div className="flex gap-1 w-full">
         <div className="w-1/2 min-h-[500px] h-[70vh]">
           <TextCompareEditor
+            value={leftText}
             targetText={rightText}
             similarityThreshold={similarityThreshold}
             storageKey="text-comparator-left"
@@ -48,6 +64,7 @@ export default function TextComparator() {
         </div>
         <div className="w-1/2 min-h-[500px] h-[70vh]">
           <TextCompareEditor
+            value={rightText}
             targetText={leftText}
             similarityThreshold={similarityThreshold}
             storageKey="text-comparator-right"

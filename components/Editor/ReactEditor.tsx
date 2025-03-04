@@ -80,28 +80,60 @@ export default function ReactEditor(props: ReactEditorProps) {
     navigator.clipboard.writeText(content)
   }
 
-  useEffect(() => {
-    if (value && editorRef.current) {
-      const html = value
-        .split('\n')
-        .map((item) => `<div>${item}</div>`)
-        .join('')
-      editorRef.current.innerHTML = html
-      setValue(value)
+  const setText = (value: string) => {
+    if (!editorRef.current) {
+      return
     }
+
+    const html = value
+      .split('\n')
+      .map((item) => `<div>${item}</div>`)
+      .join('')
+    editorRef.current.innerHTML = html
+    setValue(value)
+  }
+
+  const replaceText = (value: string) => {
+    if (value === internalValue) {
+      return
+    }
+
+    let startContainer: Node | undefined
+    let range: Range | undefined
+    let startOffset: number | undefined
+
+    const selection = window.getSelection()
+    if (selection && selection.rangeCount > 0) {
+      range = selection.getRangeAt(0)
+      startContainer = range?.startContainer
+      startOffset = range?.startOffset
+    }
+
+    setText(value)
+
+    if (startContainer && range) {
+      const newRange = document.createRange()
+      newRange.setStart(startContainer, startOffset!)
+      selection?.removeAllRanges()
+      selection?.addRange(newRange)
+    }
+  }
+
+  useEffect(() => {
+    replaceText(value || '')
   }, [value])
 
   return (
     <div className={`h-full group editor-container ${uid} flex relative`}>
       <button
         onClick={copyVisibleContent}
-        className="absolute right-6 top-4 p-1 bg-indigo-100 opacity-0 group-hover:opacity-50 hover:!opacity-100 hover:bg-indigo-200 rounded-sm transition-all"
+        className="absolute right-5 top-2 p-1 bg-indigo-100 opacity-0 group-hover:opacity-50 hover:!opacity-100 hover:bg-indigo-200 rounded-sm transition-all"
         title="copy full text"
       >
         <FeatherIcon icon="copy" className="h-4 w-4 text-indigo-900" />
       </button>
 
-      <div className="flex-1 border rounded-b-md overflow-y-auto">
+      <div className="flex-1 border rounded-b-md overflow-y-scroll">
         <div className="flex min-h-full">
           <div className="shrink-0 bg-indigo-100 text-indigo-800 font-bold text-right select-none">
             {new Array(lineNumbers).fill(1).map((_, num) => (

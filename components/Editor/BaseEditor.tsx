@@ -72,7 +72,7 @@ export default React.memo(
       <>
         <style>{`.editor>div{width:100%;padding-inline:10px;white-space:pre;}.editor.disabled{pointer-events:none;opacity:0.7}`}</style>
         <div
-          className={`editor w-full overflow-x-auto flex-1 outline-none whitespace-pre leading-[21px]`}
+          className="editor w-full overflow-x-auto flex-1 outline-none whitespace-pre leading-[21px]"
           ref={editorRef}
           onInput={onInput}
           onPaste={onPaste}

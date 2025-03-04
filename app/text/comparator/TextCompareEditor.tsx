@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react'
 import { useDebounce } from 'ahooks'
 import ReactEditor from '@/components/Editor/ReactEditor'
 import type { TextSegment } from '@/components/Editor/ReactEditor'
-import { combineFuncs } from '@/utils/func'
 import { processInputText, calculateMaxSimilarity } from '@/app/text/utils'
 
 export interface TextCompareEditorProps {
+  value: string
   /** The target text to compare against */
   targetText: string
   /** Threshold for text similarity (0-1), where 1 means exact match */
@@ -21,10 +21,9 @@ export interface TextCompareEditorProps {
 }
 
 export default function TextCompareEditor(props: TextCompareEditorProps) {
-  const { targetText, similarityThreshold, storageKey, onChange, showOnlyDiffs } = props
+  const { value, targetText, similarityThreshold, storageKey, onChange, showOnlyDiffs } = props
 
-  const [text, setText] = useState<string>('')
-  const debouncedText = useDebounce(text, { wait: 300 })
+  const debouncedText = useDebounce(value, { wait: 300 })
   const debouncedTargetText = useDebounce(targetText, { wait: 300 })
   const debouncedThreshold = useDebounce(similarityThreshold, { wait: 300 })
 
@@ -115,7 +114,7 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
         )}
       </div>
 
-      <ReactEditor onChange={combineFuncs(setText, onChange)} segments={segments} storageKey={storageKey} hiddenLines={hiddenLines} />
+      <ReactEditor value={debouncedText} onChange={onChange} segments={segments} storageKey={storageKey} hiddenLines={hiddenLines} />
     </>
   )
 }
