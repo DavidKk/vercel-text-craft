@@ -71,105 +71,125 @@ export function processInputText(text: string) {
   return positions
 }
 
-export function processInputCollection(text: string, format: 'json' | 'toml' = 'json') {
-  if (format === 'toml') {
-    try {
-      const parsed = TOML.parse(text)
-      const result: TextSegmentPosition[] = []
-      
-      // Process arrays in TOML content
-      Object.entries(parsed).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-          value.forEach((item, index) => {
-            if (typeof item === 'string') {
+/**
+ * Process TOML array data into text segments
+ */
+function processTomlCollection(text: string): TextSegmentPosition[] {
+  try {
+    const parsed = TOML.parse(text)
+    const result: TextSegmentPosition[] = []
+    
+    // Process arrays in TOML content
+    Object.entries(parsed).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach((item, index) => {
+          if (typeof item === 'string') {
+            result.push({
+              texts: [item],
+              startLine: index + 1, // Approximation since we don't have exact line numbers
+              endLine: index + 1,
+              startColumn: 0,
+              endColumn: item.length,
+            })
+          } else if (typeof item === 'object' && item !== null) {
+            const stringValues = Object.values(item)
+              .filter(val => typeof val === 'string')
+              .map(val => val as string)
+            
+            if (stringValues.length > 0) {
               result.push({
-                texts: [item],
-                startLine: index + 1, // Approximation since we don't have exact line numbers
+                texts: stringValues,
+                startLine: index + 1, // Approximation
                 endLine: index + 1,
                 startColumn: 0,
-                endColumn: item.length,
+                endColumn: JSON.stringify(item).length,
               })
-            } else if (typeof item === 'object' && item !== null) {
-              const stringValues = Object.values(item)
-                .filter(val => typeof val === 'string')
-                .map(val => val as string)
-              
-              if (stringValues.length > 0) {
-                result.push({
-                  texts: stringValues,
-                  startLine: index + 1, // Approximation
-                  endLine: index + 1,
-                  startColumn: 0,
-                  endColumn: JSON.stringify(item).length,
-                })
-              }
             }
-          })
-        }
-      })
-      
-      return result
-    } catch {
+          }
+        })
+      }
+    })
+    
+    return result
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Process JSON array data into text segments
+ */
+function processJsonCollection(text: string): TextSegmentPosition[] {
+  try {
+    const ast = Parser.parse(text, {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      locations: true,
+    })
+
+    if (!(ast.type === 'Program' && ast.body.length > 0)) {
       return []
     }
+
+    const firstNode = ast.body[0]
+    if (!(firstNode.type === 'ExpressionStatement' && firstNode.expression.type === 'ArrayExpression')) {
+      return []
+    }
+
+    const result: TextSegmentPosition[] = []
+    firstNode.expression.elements.forEach((element) => {
+      if (element && element.type === 'Literal' && typeof element.value === 'string') {
+        result.push({
+          texts: [element.value],
+          startLine: element.loc?.start.line || 0,
+          endLine: element.loc?.end.line || 0,
+          startColumn: element.loc?.start.column || 0,
+          endColumn: element.loc?.end.column || 0,
+        })
+      } else if (element && element.type === 'ObjectExpression') {
+        const properties = element.properties
+        const stringValues: string[] = []
+
+        properties.forEach((prop) => {
+          if (prop.type === 'Property' && prop.value.type === 'Literal' && typeof prop.value.value === 'string') {
+            stringValues.push(prop.value.value)
+          }
+        })
+
+        if (stringValues.length === 0) {
+          return
+        }
+
+        const startLine = element.loc?.start.line || 0
+        const endLine = element.loc?.end.line || 0
+        const startColumn = element.loc?.start.column || 0
+        const endColumn = element.loc?.end.column || 0
+
+        result.push({
+          texts: stringValues,
+          startLine: startLine,
+          endLine: endLine,
+          startColumn: startColumn,
+          endColumn: endColumn,
+        })
+      }
+    })
+
+    return result
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Process collection data (JSON or TOML) into text segments
+ */
+export function processInputCollection(text: string, format: 'json' | 'toml' = 'json'): TextSegmentPosition[] {
+  if (format === 'toml') {
+    return processTomlCollection(text)
   }
   
-  // Process JSON format (existing implementation)
-  const ast = Parser.parse(text, {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    locations: true,
-  })
-
-  if (!(ast.type === 'Program' && ast.body.length > 0)) {
-    return []
-  }
-
-  const firstNode = ast.body[0]
-  if (!(firstNode.type === 'ExpressionStatement' && firstNode.expression.type === 'ArrayExpression')) {
-    return []
-  }
-
-  const result: TextSegmentPosition[] = []
-  firstNode.expression.elements.forEach((element) => {
-    if (element && element.type === 'Literal' && typeof element.value === 'string') {
-      result.push({
-        texts: [element.value],
-        startLine: element.loc?.start.line || 0,
-        endLine: element.loc?.end.line || 0,
-        startColumn: element.loc?.start.column || 0,
-        endColumn: element.loc?.end.column || 0,
-      })
-    } else if (element && element.type === 'ObjectExpression') {
-      const properties = element.properties
-      const stringValues: string[] = []
-
-      properties.forEach((prop) => {
-        if (prop.type === 'Property' && prop.value.type === 'Literal' && typeof prop.value.value === 'string') {
-          stringValues.push(prop.value.value)
-        }
-      })
-
-      if (stringValues.length == 0) {
-        return
-      }
-
-      const startLine = element.loc?.start.line || 0
-      const endLine = element.loc?.end.line || 0
-      const startColumn = element.loc?.start.column || 0
-      const endColumn = element.loc?.end.column || 0
-
-      result.push({
-        texts: stringValues,
-        startLine: startLine,
-        endLine: endLine,
-        startColumn: startColumn,
-        endColumn: endColumn,
-      })
-    }
-  })
-
-  return result
+  return processJsonCollection(text)
 }
 
 /**
