@@ -1,6 +1,8 @@
 import { Parser } from 'acorn'
 import type { TextSegmentPosition } from '@/components/Editor/ReactEditor'
 
+import * as TOML from '@iarna/toml'
+
 /**
  * Check if the text is a valid JSON array
  */
@@ -18,12 +20,35 @@ export function isJsonArray(text: string) {
 }
 
 /**
+ * Check if the text is a valid TOML array
+ */
+export function isTomlArray(text: string) {
+  try {
+    const parsed = TOML.parse(text)
+    // Check if there's an array property at the root level
+    const hasArrayProperty = Object.values(parsed).some(value => 
+      Array.isArray(value) && 
+      value.length > 0 && 
+      value.every(item => typeof item === 'string' || (typeof item === 'object' && item !== null))
+    )
+    
+    return hasArrayProperty
+  } catch {
+    return false
+  }
+}
+
+/**
  * Handle text input, parse text to text segments
  */
 export function processInputText(text: string) {
   const normalizedText = text.normalize('NFKC')
   if (isJsonArray(normalizedText)) {
-    return processInputCollection(normalizedText)
+    return processInputCollection(normalizedText, 'json')
+  }
+  
+  if (isTomlArray(normalizedText)) {
+    return processInputCollection(normalizedText, 'toml')
   }
 
   const lines = normalizedText.split('\n')
@@ -46,7 +71,50 @@ export function processInputText(text: string) {
   return positions
 }
 
-export function processInputCollection(text: string) {
+export function processInputCollection(text: string, format: 'json' | 'toml' = 'json') {
+  if (format === 'toml') {
+    try {
+      const parsed = TOML.parse(text)
+      const result: TextSegmentPosition[] = []
+      
+      // Process arrays in TOML content
+      Object.entries(parsed).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          value.forEach((item, index) => {
+            if (typeof item === 'string') {
+              result.push({
+                texts: [item],
+                startLine: index + 1, // Approximation since we don't have exact line numbers
+                endLine: index + 1,
+                startColumn: 0,
+                endColumn: item.length,
+              })
+            } else if (typeof item === 'object' && item !== null) {
+              const stringValues = Object.values(item)
+                .filter(val => typeof val === 'string')
+                .map(val => val as string)
+              
+              if (stringValues.length > 0) {
+                result.push({
+                  texts: stringValues,
+                  startLine: index + 1, // Approximation
+                  endLine: index + 1,
+                  startColumn: 0,
+                  endColumn: JSON.stringify(item).length,
+                })
+              }
+            }
+          })
+        }
+      })
+      
+      return result
+    } catch {
+      return []
+    }
+  }
+  
+  // Process JSON format (existing implementation)
   const ast = Parser.parse(text, {
     ecmaVersion: 'latest',
     sourceType: 'module',
