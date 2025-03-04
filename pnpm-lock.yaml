@@ -1345,7 +1345,6 @@ packages:
     resolution: {integrity: sha512-HypRYtLQwWn7rHPBh4WjG4AACYxZVj39BMKUu7KK/C0nAF2ZeMMmEgUDRDzSrb170pupm+GZEzt5+W/2vNatuw==}
     peerDependencies:
       '@commitlint/lint': ^8.3.4
-      commitlint-plugin-i18n: ^0.0.1
 
   compare-func@2.0.0:
     resolution: {integrity: sha512-zHig5N+tPWARooBnb0Zx1MFcdfpyJrfTJ3Y5L+IFvUm8rM74hHz66z0gw0x4tijh5CorKkKUCnW82R2vmpeCRA==}
@@ -5223,7 +5222,6 @@ snapshots:
     dependencies:
       '@commitlint/lint': 19.6.0
       '@commitlint/rules': 8.3.6
-      commitlint-plugin-i18n: 0.0.1-alpha.3(@commitlint/lint@19.6.0)
       os-locale: 5.0.0
 
   compare-func@2.0.0:

@@ -15,7 +15,7 @@ export default function TextComparator() {
     setLeftText(mockTextList)
     setRightText(JSON.stringify(mockJsonList, null, 2))
   }
-  
+
   const handleTomlMockData = () => {
     setLeftText(mockTextList)
     setRightText(mockTomlList)

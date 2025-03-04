@@ -26,12 +26,10 @@ export function isTomlArray(text: string) {
   try {
     const parsed = TOML.parse(text)
     // Check if there's an array property at the root level
-    const hasArrayProperty = Object.values(parsed).some(value => 
-      Array.isArray(value) && 
-      value.length > 0 && 
-      value.every(item => typeof item === 'string' || (typeof item === 'object' && item !== null))
+    const hasArrayProperty = Object.values(parsed).some(
+      (value) => Array.isArray(value) && value.length > 0 && value.every((item) => typeof item === 'string' || (typeof item === 'object' && item !== null))
     )
-    
+
     return hasArrayProperty
   } catch {
     return false
@@ -46,7 +44,7 @@ export function processInputText(text: string) {
   if (isJsonArray(normalizedText)) {
     return processInputCollection(normalizedText, 'json')
   }
-  
+
   if (isTomlArray(normalizedText)) {
     return processInputCollection(normalizedText, 'toml')
   }
@@ -79,27 +77,27 @@ function processTomlCollection(text: string): TextSegmentPosition[] {
     const parsed = TOML.parse(text)
     const result: TextSegmentPosition[] = []
     const lines = text.split('\n')
-    
+
     // Process arrays in TOML content
     Object.entries(parsed).forEach(([key, value]) => {
       if (Array.isArray(value)) {
         // Find array item boundaries in the original text
-        const arrayItems: { item: any, startLine: number, endLine: number }[] = []
-        
+        const arrayItems: { item: any; startLine: number; endLine: number }[] = []
+
         // Find each array item's boundaries in the source text
-        let currentArrayItem: { item: any, startLine: number, endLine: number } | null = null
+        let currentArrayItem: { item: any; startLine: number; endLine: number } | null = null
         let inArrayItem = false
-        
+
         lines.forEach((line, lineIndex) => {
           const trimmedLine = line.trim()
-          
+
           // Detect start of an array item with [[arrayName]]
           if (trimmedLine.startsWith(`[[${key}]]`)) {
             inArrayItem = true
-            currentArrayItem = { 
-              item: {}, 
-              startLine: lineIndex + 1, 
-              endLine: lineIndex + 1 
+            currentArrayItem = {
+              item: {},
+              startLine: lineIndex + 1,
+              endLine: lineIndex + 1,
             }
           }
           // Empty line or next item marker can indicate the end of current item
@@ -116,16 +114,16 @@ function processTomlCollection(text: string): TextSegmentPosition[] {
             currentArrayItem.endLine = lineIndex + 1
           }
         })
-        
+
         // Add the last item if we're still tracking one
         if (inArrayItem && currentArrayItem) {
           arrayItems.push(currentArrayItem)
         }
-        
+
         // Match array items with parsed data
         value.forEach((item, index) => {
           const itemPosition = arrayItems[index] || { startLine: 1, endLine: 1 }
-          
+
           if (typeof item === 'string') {
             result.push({
               texts: [item],
@@ -136,9 +134,9 @@ function processTomlCollection(text: string): TextSegmentPosition[] {
             })
           } else if (typeof item === 'object' && item !== null) {
             const stringValues = Object.values(item)
-              .filter(val => typeof val === 'string')
-              .map(val => val as string)
-            
+              .filter((val) => typeof val === 'string')
+              .map((val) => val as string)
+
             if (stringValues.length > 0) {
               result.push({
                 texts: stringValues,
@@ -152,10 +150,11 @@ function processTomlCollection(text: string): TextSegmentPosition[] {
         })
       }
     })
-    
+
     return result
   } catch (error) {
-    console.error("Error processing TOML:", error)
+    // eslint-disable-next-line no-console
+    console.error('Error processing TOML:', error)
     return []
   }
 }
@@ -232,7 +231,7 @@ export function processInputCollection(text: string, format: 'json' | 'toml' = '
   if (format === 'toml') {
     return processTomlCollection(text)
   }
-  
+
   return processJsonCollection(text)
 }
 

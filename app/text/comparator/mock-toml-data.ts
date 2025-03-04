@@ -1,4 +1,3 @@
-
 export const mockTomlList = `
 # Song List in TOML format
 [[songs]]
