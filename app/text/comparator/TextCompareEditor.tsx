@@ -140,7 +140,7 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
 
   useEffect(() => {
     return processTextComparison(debouncedText, debouncedTargetText)
-  }, [debouncedText, debouncedTargetText, debouncedThreshold, viewMode])
+  }, [debouncedText, debouncedTargetText, debouncedThreshold])
 
   let hiddenLines: number[] = []
   if (viewMode !== 'all') {

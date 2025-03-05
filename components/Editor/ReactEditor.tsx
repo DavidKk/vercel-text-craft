@@ -4,6 +4,7 @@ import React, { useMemo, useState, useRef, useId, useEffect } from 'react'
 import FeatherIcon from 'feather-icons-react'
 import { combineFuncs } from '@/utils/func'
 import BaseEditor, { type BaseEditorRef } from './BaseEditor'
+import { isJsonArray } from '@/app/text/share/text-process/json'
 
 export interface TextPosition {
   /** Start line number of the text */
@@ -55,21 +56,23 @@ export default function ReactEditor(props: ReactEditorProps) {
   const lineNumbers = useMemo(() => internalValue.split('\n').length + 1, [internalValue])
 
   const { diffRules, hiddenRules } = useMemo(() => {
-    const diffRules: string[] = []
+    const diffLines: number[] = []
     segments?.forEach(({ isPresent, startLine, endLine, ignoredLines = [] }) => {
       if (isPresent) {
         return
       }
 
-      // 生成每一行的规则，但排除被忽略的行
       for (let line = startLine; line <= endLine; line++) {
-        if (!ignoredLines.includes(line)) {
-          diffRules.push(`.${uid} .editor > div:nth-child(${line})`)
+        if (ignoredLines.includes(line)) {
+          continue
         }
+
+        diffLines.push(line)
       }
     })
 
-    const hiddenRules = hiddenLines?.map((lineNum) => `.${uid} .editor > div:nth-child(${lineNum})`) || []
+    const diffRules = generateCSSRanges(diffLines, `.${uid} .editor > div`)
+    const hiddenRules = hiddenLines ? generateCSSRanges(hiddenLines, `.${uid} .editor > div`) : []
 
     return {
       diffRules: diffRules.filter(Boolean),
@@ -143,10 +146,14 @@ export default function ReactEditor(props: ReactEditorProps) {
         <FeatherIcon icon="copy" className="h-4 w-4 text-indigo-900" />
       </button>
 
+      <span className="select-none text-xs font-extrabold text-indigo-600 absolute right-5 bottom-2 p-1 bg-indigo-100 opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:bg-indigo-200 rounded-sm transition-all">
+        {isJsonArray(internalValue) ? 'JSON' : 'TEXT'}
+      </span>
+
       <div className="flex-1 border rounded-b-md overflow-y-scroll">
         <div className="flex min-h-full">
           <div className="shrink-0 bg-indigo-100 text-indigo-800 font-bold text-right select-none">
-            {new Array(lineNumbers + (hiddenLines?.length || 0)).fill(1).map((_, num) => (
+            {new Array(lineNumbers).fill(1).map((_, num) => (
               <div key={num} className="px-2 leading-[21px]" style={{ display: hiddenLines && hiddenLines.includes(num + 1) ? 'none' : undefined }}>
                 {num + 1}
               </div>
@@ -163,4 +170,24 @@ export default function ReactEditor(props: ReactEditorProps) {
       </div>
     </div>
   )
+}
+
+function generateCSSRanges(lineNumbers: number[], prefix = '') {
+  if (!lineNumbers.length) {
+    return []
+  }
+
+  const sortedLines = [...new Set(lineNumbers)].sort((a, b) => a - b)
+  const ranges = []
+  let start = sortedLines[0]
+
+  for (let i = 1; i < sortedLines.length; i++) {
+    if (sortedLines[i] !== sortedLines[i - 1] + 1) {
+      ranges.push({ start, end: sortedLines[i - 1] })
+      start = sortedLines[i]
+    }
+  }
+
+  ranges.push({ start, end: sortedLines[sortedLines.length - 1] })
+  return ranges.map((range) => (range.start === range.end ? `${prefix}:nth-child(${range.start})` : `${prefix}:nth-child(n+${range.start}):nth-child(-n+${range.end})`))
 }
