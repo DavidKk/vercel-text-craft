@@ -73,8 +73,8 @@ export default React.memo(
         return ''
       }
 
-      const { innerHTML } = editorRef.current
-      return innerHTML
+      const { innerText } = editorRef.current
+      return innerText
     }
 
     const getHtml = () => {
