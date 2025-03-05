@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useImperativeHandle, useRef } from 'react'
+import React, { useEffect, useImperativeHandle, useRef, useState } from 'react'
 
 export interface BaseEditorProps {
   /** Key for storing editor content in localStorage */
@@ -16,6 +16,7 @@ export interface BaseEditorRef {
   getText: () => string
   getHtml: () => string
   setHtml: (html: string) => void
+  getElement: () => HTMLDivElement | null
 }
 
 export default React.memo(
@@ -59,6 +60,15 @@ export default React.memo(
       })
     }
 
+    const onResize: React.ReactEventHandler<HTMLElement> = () => {
+      if (!editorRef.current) {
+        return
+      }
+
+      const clientHeight = editorRef.current.clientHeight
+      setHiehgt(clientHeight)
+    }
+
     const saveCache = () => {
       if (!(storageKey && editorRef.current)) {
         return
@@ -95,7 +105,11 @@ export default React.memo(
       saveCache()
     }
 
-    useImperativeHandle(ref, () => ({ saveCache, getText, getHtml, setHtml }))
+    const getElement = () => {
+      return editorRef.current
+    }
+
+    useImperativeHandle(ref, () => ({ saveCache, getText, getHtml, setHtml, getElement }))
 
     useEffect(() => {
       if (!(storageKey && editorRef.current)) {
@@ -113,14 +127,26 @@ export default React.memo(
       onChange(innerText, innerHTML)
     }, [storageKey])
 
+    const [height, setHiehgt] = useState<number>()
+    useEffect(() => {
+      if (!editorRef.current) {
+        return
+      }
+
+      const clientHeight = editorRef.current.clientHeight
+      setHiehgt(clientHeight)
+    }, [])
+
     return (
       <>
-        <style>{`.editor>div{width:100%;padding-inline:10px;white-space:pre;}.editor.disabled{pointer-events:none;opacity:0.7}`}</style>
+        <style>{`.editor>div{width:100%;padding-inline:10px;white-space:pre;scroll-snap-align:start;}.editor.disabled{pointer-events:none;opacity:0.7}`}</style>
         <div
-          className="editor w-full overflow-x-auto flex-1 outline-none whitespace-pre leading-[21px]"
+          className="editor content-visibility-auto will-change-transform contain-strict w-full overflow-x-scroll overflow-y-hidden flex-1 outline-none whitespace-pre leading-[21px]"
+          style={height ? { containIntrinsicSize: `${height ? `${height}px` : undefined}` } : {}}
           ref={editorRef}
           onInput={onInput}
           onPaste={onPaste}
+          onResize={onResize}
           contentEditable={disabled ? false : true}
           aria-disabled={disabled ? 'true' : undefined}
         />

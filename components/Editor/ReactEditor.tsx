@@ -5,6 +5,7 @@ import FeatherIcon from 'feather-icons-react'
 import { combineFuncs } from '@/utils/func'
 import BaseEditor, { type BaseEditorRef } from './BaseEditor'
 import { isJsonArray } from '@/app/text/share/text-process/json'
+import { Style, type StyleRef } from './Style'
 
 export interface TextPosition {
   /** Start line number of the text */
@@ -55,7 +56,7 @@ export default function ReactEditor(props: ReactEditorProps) {
   const [internalValue, setValue] = useState<string>('')
   const lineNumbers = useMemo(() => internalValue.split('\n').length + 1, [internalValue])
 
-  const { diffRules, hiddenRules } = useMemo(() => {
+  const diffLines = useMemo(() => {
     const diffLines: number[] = []
     segments?.forEach(({ isPresent, startLine, endLine, ignoredLines = [] }) => {
       if (isPresent) {
@@ -71,14 +72,8 @@ export default function ReactEditor(props: ReactEditorProps) {
       }
     })
 
-    const diffRules = generateCSSRanges(diffLines, `.${uid} .editor > div`)
-    const hiddenRules = hiddenLines ? generateCSSRanges(hiddenLines, `.${uid} .editor > div`) : []
-
-    return {
-      diffRules: diffRules.filter(Boolean),
-      hiddenRules: hiddenRules.filter(Boolean),
-    }
-  }, [uid, segments, hiddenLines])
+    return diffLines
+  }, [segments])
 
   const copyVisibleContent = () => {
     if (!editorRef.current) {
@@ -102,6 +97,7 @@ export default function ReactEditor(props: ReactEditorProps) {
       .split('\n')
       .map((item) => `<div>${item}</div>`)
       .join('')
+
     editorRef.current.setHtml(html)
     setValue(value)
   }
@@ -160,34 +156,11 @@ export default function ReactEditor(props: ReactEditorProps) {
             ))}
           </div>
 
-          <style>
-            {diffRules.length ? `${diffRules.join(',')}{background-color:rgb(251 207 232 / var(--tw-bg-opacity, 1));}` : ''}
-            {hiddenRules.length ? `${hiddenRules.join(',')}{display:none;}` : ''}
-          </style>
-
+          <Style prefix={`.${uid} .editor > div`} lines={diffLines} style="background-color:rgb(251 207 232 / var(--tw-bg-opacity, 1));" />
+          <Style prefix={`.${uid} .editor > div`} lines={hiddenLines} style="display:none;" />
           <BaseEditor disabled={disabled} storageKey={storageKey} onChange={combineFuncs(onChange, setValue)} ref={editorRef} />
         </div>
       </div>
     </div>
   )
-}
-
-function generateCSSRanges(lineNumbers: number[], prefix = '') {
-  if (!lineNumbers.length) {
-    return []
-  }
-
-  const sortedLines = [...new Set(lineNumbers)].sort((a, b) => a - b)
-  const ranges = []
-  let start = sortedLines[0]
-
-  for (let i = 1; i < sortedLines.length; i++) {
-    if (sortedLines[i] !== sortedLines[i - 1] + 1) {
-      ranges.push({ start, end: sortedLines[i - 1] })
-      start = sortedLines[i]
-    }
-  }
-
-  ranges.push({ start, end: sortedLines[sortedLines.length - 1] })
-  return ranges.map((range) => (range.start === range.end ? `${prefix}:nth-child(${range.start})` : `${prefix}:nth-child(n+${range.start}):nth-child(-n+${range.end})`))
 }
