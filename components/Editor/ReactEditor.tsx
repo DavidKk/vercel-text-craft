@@ -40,10 +40,12 @@ export interface ReactEditorProps {
   onChange: (value: string) => void
   /** Array of line numbers to be hidden, if empty or undefined all lines will be visible */
   hiddenLines?: number[]
+  /** Whether the editor is disabled */
+  disabled?: boolean
 }
 
 export default function ReactEditor(props: ReactEditorProps) {
-  const { value, onChange, segments, storageKey, hiddenLines } = props
+  const { value, onChange, segments, storageKey, hiddenLines, disabled } = props
 
   const rawUid = useId()
   const uid = useMemo(() => `${rawUid.replace(/[^a-zA-Z0-9]/g, '')}`, [rawUid])
@@ -156,7 +158,7 @@ export default function ReactEditor(props: ReactEditorProps) {
             {hiddenRules.length ? `${hiddenRules.join(',')}{display:none;}` : ''}
           </style>
 
-          <BaseEditor storageKey={storageKey} onChange={combineFuncs(onChange, setValue)} ref={editorRef} />
+          <BaseEditor disabled={disabled} storageKey={storageKey} onChange={combineFuncs(onChange, setValue)} ref={editorRef} />
         </div>
       </div>
     </div>

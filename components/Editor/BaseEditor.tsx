@@ -7,6 +7,8 @@ export interface BaseEditorProps {
   storageKey?: string
   /** Callback function when editor content or HTML changes */
   onChange: (text: string, html: string) => void
+  /** Whether the editor is disabled */
+  disabled?: boolean
 }
 
 export interface BaseEditorRef {
@@ -18,7 +20,7 @@ export interface BaseEditorRef {
 
 export default React.memo(
   React.forwardRef<BaseEditorRef, BaseEditorProps>((props, ref) => {
-    const { storageKey, onChange } = props
+    const { storageKey, onChange, disabled } = props
     const editorRef = useRef<HTMLDivElement>(null)
 
     const onInput: React.FormEventHandler<HTMLDivElement> = () => {
@@ -119,7 +121,8 @@ export default React.memo(
           ref={editorRef}
           onInput={onInput}
           onPaste={onPaste}
-          contentEditable="true"
+          contentEditable={disabled ? false : true}
+          aria-disabled={disabled ? 'true' : undefined}
         />
       </>
     )
