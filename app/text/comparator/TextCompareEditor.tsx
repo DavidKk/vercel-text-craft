@@ -17,12 +17,12 @@ export interface TextCompareEditorProps {
   storageKey: string
   /** Callback function when text content changes */
   onChange: (value: string) => void
-  /** Whether to show only different lines */
-  showOnlyDiffs?: boolean
+  /** View mode for controlling which lines to display */
+  viewMode?: 'all' | 'diffs' | 'similar'
 }
 
 export default function TextCompareEditor(props: TextCompareEditorProps) {
-  const { value, targetText, similarityThreshold, storageKey, onChange, showOnlyDiffs } = props
+  const { value, targetText, similarityThreshold, storageKey, onChange, viewMode = 'all' } = props
 
   const debouncedText = useDebounce(value, { wait: 300 })
   const debouncedTargetText = useDebounce(targetText, { wait: 300 })
@@ -77,13 +77,24 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
 
         // Detect lines that overlap with matched segments
         const ignoredLines: number[] = []
+        const unOverlappedLines: number[] = []
         for (let line = segment.startLine; line <= segment.endLine; line++) {
           // Check if current line is part of any matched segment
           const isOverlapped = batchResults.some((other) => other !== segment && other.isPresent && line >= other.startLine && line <= other.endLine)
-
           if (isOverlapped) {
             ignoredLines.push(line)
+            continue
           }
+
+          // If child elements overlap (have similarities), ignore the parent lines in similar mode
+          // but make sure not to include lines that overlap with others
+          if (viewMode === 'similar') {
+            unOverlappedLines.push(line)
+          }
+        }
+
+        if (viewMode === 'similar' && ignoredLines.length > 0) {
+          ignoredLines.push(...unOverlappedLines)
         }
 
         // Remove segment if all its lines are ignored
@@ -129,19 +140,21 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
 
   useEffect(() => {
     return processTextComparison(debouncedText, debouncedTargetText)
-  }, [debouncedText, debouncedTargetText, debouncedThreshold])
+  }, [debouncedText, debouncedTargetText, debouncedThreshold, viewMode])
 
   let hiddenLines: number[] = []
-  if (showOnlyDiffs) {
+  if (viewMode !== 'all') {
     segments.forEach(({ isPresent, startLine, endLine, ignoredLines = [] }) => {
-      if (!isPresent) {
+      if (viewMode === 'diffs' ? !isPresent : isPresent) {
         return
       }
 
       for (let line = startLine; line <= endLine; line++) {
-        if (!ignoredLines.includes(line)) {
-          hiddenLines.push(line)
+        if (ignoredLines.includes(line)) {
+          continue
         }
+
+        hiddenLines.push(line)
       }
     })
   }

@@ -40,9 +40,7 @@ export function processJsonCollection(text: string): TextSegmentPosition[] {
       return []
     }
 
-    const result = processArray(firstNode.expression.elements)
-    console.log(result)
-    return result
+    return processArray(firstNode.expression.elements)
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error processing JSON:', error)

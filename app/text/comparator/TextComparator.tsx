@@ -8,7 +8,7 @@ export default function TextComparator() {
   const [leftText, setLeftText] = useState('')
   const [rightText, setRightText] = useState('')
   const [similarityThreshold, setSimilarityThreshold] = useState(1)
-  const [showOnlyDiffs, setShowOnlyDiffs] = useState(false)
+  const [viewMode, setViewMode] = useState<'all' | 'diffs' | 'similar'>('all')
 
   const handleMockData = () => {
     setLeftText(mockTextList)
@@ -49,13 +49,19 @@ export default function TextComparator() {
 
           <div className="flex items-center">
             <button
-              className={`px-3 py-1 text-xs rounded-l-sm ${!showOnlyDiffs ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-              onClick={() => setShowOnlyDiffs(false)}
+              className={`px-3 py-1 text-xs rounded-l-sm ${viewMode === 'all' ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+              onClick={() => setViewMode('all')}
             >
               All
             </button>
-            <button className={`px-3 py-1 text-xs rounded-r-sm ${showOnlyDiffs ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-700'}`} onClick={() => setShowOnlyDiffs(true)}>
+            <button className={`px-3 py-1 text-xs ${viewMode === 'diffs' ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-700'}`} onClick={() => setViewMode('diffs')}>
               Diffs
+            </button>
+            <button
+              className={`px-3 py-1 text-xs rounded-r-sm ${viewMode === 'similar' ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+              onClick={() => setViewMode('similar')}
+            >
+              Similar
             </button>
           </div>
         </div>
@@ -69,7 +75,7 @@ export default function TextComparator() {
             similarityThreshold={similarityThreshold}
             storageKey="text-comparator-left"
             onChange={setLeftText}
-            showOnlyDiffs={showOnlyDiffs}
+            viewMode={viewMode}
           />
         </div>
         <div className="w-1/2 min-h-[500px] h-[70vh]">
@@ -79,7 +85,7 @@ export default function TextComparator() {
             similarityThreshold={similarityThreshold}
             storageKey="text-comparator-right"
             onChange={setRightText}
-            showOnlyDiffs={showOnlyDiffs}
+            viewMode={viewMode}
           />
         </div>
       </div>
