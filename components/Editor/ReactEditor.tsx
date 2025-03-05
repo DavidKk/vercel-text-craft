@@ -136,13 +136,13 @@ export default function ReactEditor(props: ReactEditorProps) {
     <div className={`h-full group editor-container ${uid} flex relative`}>
       <button
         onClick={copyVisibleContent}
-        className="absolute right-5 top-2 p-1 bg-indigo-100 opacity-0 group-hover:opacity-50 hover:!opacity-100 hover:bg-indigo-200 rounded-sm transition-all"
+        className="absolute z-10 right-5 top-2 p-1 bg-indigo-100 opacity-0 group-hover:opacity-50 hover:!opacity-100 hover:bg-indigo-200 rounded-sm transition-all"
         title="copy full text"
       >
         <FeatherIcon icon="copy" className="h-4 w-4 text-indigo-900" />
       </button>
 
-      <span className="select-none text-xs font-extrabold text-indigo-600 absolute right-5 bottom-2 p-1 bg-indigo-100 opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:bg-indigo-200 rounded-sm transition-all">
+      <span className="select-none text-xs font-extrabold text-indigo-600 absolute z-10 right-5 bottom-2 p-1 bg-indigo-100 opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:bg-indigo-200 rounded-sm transition-all">
         {isJsonArray(internalValue) ? 'JSON' : 'TEXT'}
       </span>
 
