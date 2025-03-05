@@ -12,7 +12,7 @@ export { generateMetadata }
 export default function TextComparator() {
   return (
     <div className="w-full flex flex-col items-center">
-      <div className="w-full flex flex-col gap-4 py-10 px-4">
+      <div className="w-full flex flex-col gap-4 p-4 pt-6">
         <Meta {...metaProps} />
         <Comparator />
       </div>

@@ -146,7 +146,7 @@ export default function ReactEditor(props: ReactEditorProps) {
       <div className="flex-1 border rounded-b-md overflow-y-scroll">
         <div className="flex min-h-full">
           <div className="shrink-0 bg-indigo-100 text-indigo-800 font-bold text-right select-none">
-            {new Array(lineNumbers).fill(1).map((_, num) => (
+            {new Array(lineNumbers + (hiddenLines?.length || 0)).fill(1).map((_, num) => (
               <div key={num} className="px-2 leading-[21px]" style={{ display: hiddenLines && hiddenLines.includes(num + 1) ? 'none' : undefined }}>
                 {num + 1}
               </div>

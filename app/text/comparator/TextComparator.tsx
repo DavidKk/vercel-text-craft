@@ -68,7 +68,7 @@ export default function TextComparator() {
       </div>
 
       <div className="flex gap-1 w-full">
-        <div className="w-1/2 min-h-[500px] h-[70vh]">
+        <div className="w-1/2 h-[60vh]">
           <TextCompareEditor
             value={leftText}
             targetText={rightText}
@@ -78,7 +78,7 @@ export default function TextComparator() {
             viewMode={viewMode}
           />
         </div>
-        <div className="w-1/2 min-h-[500px] h-[70vh]">
+        <div className="w-1/2 h-[60vh]">
           <TextCompareEditor
             value={rightText}
             targetText={leftText}
