@@ -29,16 +29,21 @@ export function Nav(props: NavProps) {
         </h1>
 
         <div className="ml-8 flex">
-          {Object.entries(nav).map(([name, nav], index) => (
+          {Object.entries(nav).map(([hero, nav], index) => (
             <div className="group inline-flex flex-col relative px-2" key={index}>
-              <span className="absolute left-0 right-0 transition-all opacity-[0] group-hover:opacity-[1] group-hover:translate-y-[-0.8rem] group-hover:scale-[0.6] inline-flex justify-center font-black text-center uppercase user-select-none pointer-events-none">
-                {name}
-              </span>
-              <div className="flex gap-2 transition-all group-hover:translate-y-[0.5rem]">
+              {!hero.startsWith('$') && (
+                <span className="absolute left-0 right-0 transition-all opacity-[0] group-hover:opacity-[1] group-hover:translate-y-[-0.8rem] group-hover:scale-[0.6] inline-flex justify-center font-black text-center uppercase user-select-none pointer-events-none">
+                  {hero}
+                </span>
+              )}
+
+              <div className={`flex gap-2 transition-all ${hero.startsWith('$') ? '' : 'group-hover:translate-y-[0.5rem]'}`}>
                 {nav.map(({ name, href }, index) => (
                   <Link className="relative group/link" href={href} key={index}>
                     {name}
-                    <span className="absolute inset-x-0 bottom-0 h-[2px] bg-white transition-all duration-300 transform translate-y-[0.7rem] scale-x-0 group-hover/link:scale-x-100"></span>
+                    <span
+                      className={`${hero.startsWith('$') ? 'translate-y-[1.2rem]' : 'translate-y-[0.7rem]'} absolute inset-x-0 bottom-0 h-[2px] bg-white transition-all duration-300 transform scale-x-0 group-hover/link:scale-x-100`}
+                    ></span>
                   </Link>
                 ))}
               </div>

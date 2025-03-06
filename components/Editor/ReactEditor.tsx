@@ -3,9 +3,9 @@
 import React, { useMemo, useState, useRef, useId, useEffect } from 'react'
 import FeatherIcon from 'feather-icons-react'
 import { combineFuncs } from '@/utils/func'
+import { isJsonArray } from '@/services/json'
 import BaseEditor, { type BaseEditorRef } from './BaseEditor'
-import { isJsonArray } from '@/app/text/share/text-process/json'
-import { Style, type StyleRef } from './Style'
+import { Style } from './Style'
 
 export interface TextPosition {
   /** Start line number of the text */

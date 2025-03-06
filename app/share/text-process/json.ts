@@ -1,26 +1,6 @@
 import { Parser } from 'acorn'
 import type { TextSegmentPosition } from '@/components/Editor/ReactEditor'
 
-/**
- * Check if the text is a valid JSON array
- */
-export function isJsonArray(text: string) {
-  try {
-    const parsed = JSON.parse(text)
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      return true
-    }
-
-    if (typeof parsed === 'object' && parsed !== null && Object.keys(parsed).length) {
-      return true
-    }
-
-    return false
-  } catch {
-    return false
-  }
-}
-
 export function processJsonCollection(text: string): TextSegmentPosition[] {
   try {
     // 将 JSON 对象包装在数组中以符合 ACORN 解析器要求
