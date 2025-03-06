@@ -80,12 +80,7 @@ export default function ReactEditor(props: ReactEditorProps) {
       return
     }
 
-    const innerText = editorRef.current.getText()
-    const lines = innerText.split('\n')
-    const visibleLines = lines.filter((_, index) => !hiddenLines?.includes(index + 1))
-    const content = visibleLines.join('\n')
-
-    navigator.clipboard.writeText(content)
+    editorRef.current.copyVisibleContent()
   }
 
   const setText = (value: string) => {

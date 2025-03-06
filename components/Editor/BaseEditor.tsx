@@ -17,6 +17,7 @@ export interface BaseEditorRef {
   getHtml: () => string
   setHtml: (html: string) => void
   getElement: () => HTMLDivElement | null
+  copyVisibleContent: () => void
 }
 
 export default React.memo(
@@ -24,49 +25,29 @@ export default React.memo(
     const { storageKey, onChange, disabled } = props
     const editorRef = useRef<HTMLDivElement>(null)
 
-    const onInput: React.FormEventHandler<HTMLDivElement> = () => {
+    const copyVisibleContent = () => {
       if (!editorRef.current) {
         return
       }
 
-      const { innerHTML: html, innerText } = editorRef.current
-      const text = innerText.replaceAll('\n\n', '\n')
-
-      onChange(text, html)
-      storageKey && localStorage.setItem(storageKey, html)
+      const content = getText()
+      navigator.clipboard.writeText(content)
     }
 
-    const onPaste: React.ClipboardEventHandler<HTMLDivElement> = () => {
-      setTimeout(() => {
-        if (!editorRef.current) {
-          return
-        }
-
-        const text = editorRef.current.innerText
-        if (!text) {
-          return
-        }
-
-        const lines = text.split('\n')
-        const wrappedContents = lines.map((line) => `<div>${line}</div>`)
-        editorRef.current.innerHTML = wrappedContents.join('')
-
-        const { innerText, innerHTML } = editorRef.current
-        onChange(innerText, innerHTML)
-
-        if (storageKey) {
-          localStorage.setItem(storageKey, innerHTML)
-        }
-      })
-    }
-
-    const onResize: React.ReactEventHandler<HTMLElement> = () => {
-      if (!editorRef.current) {
+    const loadCache = () => {
+      if (!(storageKey && editorRef.current)) {
         return
       }
 
-      const clientHeight = editorRef.current.clientHeight
-      setHiehgt(clientHeight)
+      const savedContent = localStorage.getItem(storageKey)
+      if (!savedContent) {
+        return
+      }
+
+      editorRef.current.innerHTML = savedContent
+
+      const { innerText, innerHTML } = editorRef.current
+      onChange(innerText, innerHTML)
     }
 
     const saveCache = () => {
@@ -109,32 +90,115 @@ export default React.memo(
       return editorRef.current
     }
 
-    useImperativeHandle(ref, () => ({ saveCache, getText, getHtml, setHtml, getElement }))
+    useImperativeHandle(ref, () => ({ saveCache, getText, getHtml, setHtml, getElement, copyVisibleContent }))
 
-    useEffect(() => {
-      if (!(storageKey && editorRef.current)) {
+    const onInput: React.FormEventHandler<HTMLDivElement> = () => {
+      if (!editorRef.current) {
         return
       }
 
-      const savedContent = localStorage.getItem(storageKey)
-      if (!savedContent) {
-        return
-      }
+      const { innerHTML: html, innerText } = editorRef.current
+      const text = innerText.replaceAll('\n\n', '\n')
 
-      editorRef.current.innerHTML = savedContent
+      onChange(text, html)
+    }
 
-      const { innerText, innerHTML } = editorRef.current
-      onChange(innerText, innerHTML)
-    }, [storageKey])
+    const onPaste = () => {
+      setTimeout(() => {
+        if (!editorRef.current) {
+          return
+        }
 
-    const [height, setHiehgt] = useState<number>()
-    useEffect(() => {
+        const text = editorRef.current.innerText
+        if (!text) {
+          return
+        }
+
+        const lines = text.split('\n')
+        const wrappedContents = lines.map((line) => `<div>${line}</div>`)
+        editorRef.current.innerHTML = wrappedContents.join('')
+
+        const { innerText, innerHTML } = editorRef.current
+        onChange(innerText, innerHTML)
+
+        if (storageKey) {
+          localStorage.setItem(storageKey, innerHTML)
+        }
+      })
+    }
+
+    const onResize = () => {
       if (!editorRef.current) {
         return
       }
 
       const clientHeight = editorRef.current.clientHeight
       setHiehgt(clientHeight)
+    }
+
+    const onKeyDown: React.KeyboardEventHandler<HTMLElement> = (event) => {
+      if (event.key === 'Backspace') {
+        const selection = window.getSelection()
+        if (!selection || !editorRef.current) {
+          return
+        }
+
+        const range = selection.getRangeAt(0)
+        if (!range) {
+          return
+        }
+
+        event.preventDefault()
+
+        const fragment = document.createDocumentFragment()
+        fragment.appendChild(range.cloneContents())
+
+        range.deleteContents()
+
+        const { innerHTML: html, innerText } = editorRef.current
+        const text = innerText.replaceAll('\n\n', '\n')
+        onChange(text, html)
+        return
+      }
+
+      if (event.ctrlKey || event.metaKey) {
+        if (event.key === 'c') {
+          event.preventDefault()
+          copyVisibleContent()
+          return
+        }
+
+        if (event.key === 'a') {
+          return
+        }
+
+        if (event.key === 's' && storageKey) {
+          event.preventDefault()
+          saveCache()
+          return
+        }
+
+        if (event.key === 'z') {
+          event.preventDefault()
+          loadCache()
+          return
+        }
+      }
+
+      if (disabled) {
+        event.preventDefault()
+        event.stopPropagation()
+        return
+      }
+    }
+
+    useEffect(() => {
+      loadCache()
+    }, [])
+
+    const [height, setHiehgt] = useState<number>()
+    useEffect(() => {
+      onResize()
     }, [])
 
     return (
@@ -146,12 +210,19 @@ export default React.memo(
           ref={editorRef}
           onInput={onInput}
           onPaste={onPaste}
+          onKeyDown={onKeyDown}
           onResize={onResize}
-          contentEditable={disabled ? false : true}
+          contentEditable={true}
           aria-disabled={disabled ? 'true' : undefined}
         />
       </>
     )
   }),
-  () => true
+  (prev, next) => {
+    if (prev.disabled !== next.disabled) {
+      return false
+    }
+
+    return true
+  }
 )

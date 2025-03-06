@@ -175,7 +175,14 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
         )}
       </div>
 
-      <ReactEditor disabled={processingBatch} value={debouncedText} onChange={onChange} segments={segments} storageKey={storageKey} hiddenLines={hiddenLines} />
+      <ReactEditor
+        disabled={processingBatch || viewMode !== 'all'}
+        value={debouncedText}
+        onChange={onChange}
+        segments={segments}
+        storageKey={storageKey}
+        hiddenLines={hiddenLines}
+      />
     </>
   )
 }
