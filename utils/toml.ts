@@ -4,7 +4,10 @@ import * as TOML from '@iarna/toml'
  * Check if the text is a valid TOML
  */
 export function isToml(text: string) {
-  if (!text) return false
+  if (!text) {
+    return false
+  }
+
   try {
     TOML.parse(text)
     return true
@@ -26,9 +29,11 @@ export function isTomlArray(text: string) {
           if (typeof item === 'string') {
             return true
           }
+
           if (typeof item === 'object' && item !== null) {
             return true
           }
+
           return false
         })
       }
