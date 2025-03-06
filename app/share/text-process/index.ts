@@ -1,8 +1,8 @@
 import type { TextSegmentPosition } from '@/components/Editor/ReactEditor'
 import { processJsonCollection } from './json'
 import { processTomlCollection } from './toml'
-import { isJsonArray } from '@/services/json'
-import { isTomlArray } from '@/services/toml'
+import { isJsonArray } from '@/utils/json'
+import { isTomlArray } from '@/utils/toml'
 
 /**
  * Handle text input, parse text to text segments

@@ -3,7 +3,8 @@
 import React, { useMemo, useState, useRef, useId, useEffect } from 'react'
 import FeatherIcon from 'feather-icons-react'
 import { combineFuncs } from '@/utils/func'
-import { isJsonArray } from '@/services/json'
+import { isJson } from '@/utils/json'
+import { isToml } from '@/utils/toml'
 import BaseEditor, { type BaseEditorRef } from './BaseEditor'
 import { Style } from './Style'
 
@@ -39,7 +40,7 @@ export interface ReactEditorProps {
   /** Key for storing editor content in localStorage */
   storageKey?: string
   /** Callback function when editor content changes */
-  onChange: (value: string) => void
+  onChange?: (value: string) => void
   /** Array of line numbers to be hidden, if empty or undefined all lines will be visible */
   hiddenLines?: number[]
   /** Whether the editor is disabled */
@@ -55,7 +56,6 @@ export default function ReactEditor(props: ReactEditorProps) {
   const editorRef = useRef<BaseEditorRef>(null)
   const [internalValue, setValue] = useState<string>('')
   const lineNumbers = useMemo(() => internalValue.split('\n').length + 1, [internalValue])
-
   const diffLines = useMemo(() => {
     const diffLines: number[] = []
     segments?.forEach(({ isPresent, startLine, endLine, ignoredLines = [] }) => {
@@ -83,14 +83,18 @@ export default function ReactEditor(props: ReactEditorProps) {
     editorRef.current.copyVisibleContent()
   }
 
-  const setText = (value: string) => {
+  const setText = (value?: string) => {
     if (!editorRef.current) {
       return
     }
 
+    if (typeof value !== 'string') {
+      value = ''
+    }
+
     const html = value
       .split('\n')
-      .map((item) => `<div>${item}</div>`)
+      .map((item) => `<div>${item || '<br/>'}</div>`)
       .join('')
 
     editorRef.current.setHtml(html)
@@ -138,7 +142,7 @@ export default function ReactEditor(props: ReactEditorProps) {
       </button>
 
       <span className="select-none text-xs font-extrabold text-indigo-600 absolute z-10 right-5 bottom-2 p-1 bg-indigo-100 opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:bg-indigo-200 rounded-sm transition-all">
-        {isJsonArray(internalValue) ? 'JSON' : 'TEXT'}
+        {isJson(internalValue) ? 'JSON' : isToml(internalValue) ? 'TOML' : 'TEXT'}
       </span>
 
       <div className="flex-1 border rounded-b-md overflow-y-scroll">

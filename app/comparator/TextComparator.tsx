@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import TextCompareEditor from './TextCompareEditor'
-import { mockTextList, mockJsonList, mockTomlList } from './mock-data'
+import Tabs from '@/components/Tabs'
+import { MOCK_TEXT_LIST, MOCK_JSON_LIST, MOCK_TOML_LIST } from './mock-data'
 
 export default function TextComparator() {
   const [leftText, setLeftText] = useState('')
@@ -11,13 +12,13 @@ export default function TextComparator() {
   const [viewMode, setViewMode] = useState<'all' | 'diffs' | 'similar'>('all')
 
   const handleMockData = () => {
-    setLeftText(mockTextList)
-    setRightText(JSON.stringify(mockJsonList, null, 2))
+    setLeftText(MOCK_TEXT_LIST)
+    setRightText(JSON.stringify(MOCK_JSON_LIST, null, 2))
   }
 
   const handleTomlMockData = () => {
-    setLeftText(mockTextList)
-    setRightText(mockTomlList)
+    setLeftText(MOCK_TEXT_LIST)
+    setRightText(MOCK_TOML_LIST)
   }
 
   return (
@@ -47,23 +48,15 @@ export default function TextComparator() {
             </button>
           </div>
 
-          <div className="flex items-center">
-            <button
-              className={`px-3 py-1 text-xs rounded-l-sm ${viewMode === 'all' ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-              onClick={() => setViewMode('all')}
-            >
-              All
-            </button>
-            <button className={`px-3 py-1 text-xs ${viewMode === 'diffs' ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-700'}`} onClick={() => setViewMode('diffs')}>
-              Diffs
-            </button>
-            <button
-              className={`px-3 py-1 text-xs rounded-r-sm ${viewMode === 'similar' ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-              onClick={() => setViewMode('similar')}
-            >
-              Similar
-            </button>
-          </div>
+          <Tabs
+            items={[
+              { key: 'all', label: 'All' },
+              { key: 'diffs', label: 'Diffs' },
+              { key: 'similar', label: 'Similar' },
+            ]}
+            activeKey={viewMode}
+            onChange={(key) => setViewMode(key as 'all' | 'diffs' | 'similar')}
+          />
         </div>
       </div>
 
@@ -78,6 +71,7 @@ export default function TextComparator() {
             viewMode={viewMode}
           />
         </div>
+
         <div className="w-1/2 h-[60vh]">
           <TextCompareEditor
             value={rightText}

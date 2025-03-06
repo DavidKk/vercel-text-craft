@@ -1,4 +1,4 @@
-export const mockTextList = `Bohemian Rhapsody
+export const MOCK_TEXT_LIST = `Bohemian Rhapsody
 Stairway to Heaven
 Imagine
 Smells Like Teen Spirit
@@ -9,7 +9,7 @@ Yesterday
 Hey Jude
 `
 
-export const mockJsonList = [
+export const MOCK_JSON_LIST = [
   {
     songId: '1001',
     songName: 'Bohemian Rhapsody',
@@ -70,7 +70,7 @@ export const mockJsonList = [
   },
 ]
 
-export const mockTomlList = `
+export const MOCK_TOML_LIST = `
 # Song List in TOML format
 [[songs]]
 songId = "1001"

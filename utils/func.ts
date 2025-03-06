@@ -1,8 +1,10 @@
-export function combineFuncs<T extends any[], R>(...funcs: ((...args: T) => R)[]): (...args: T) => R {
+export function combineFuncs<T extends any[], R>(...funcs: Array<((...args: T) => R) | undefined>): (...args: T) => R {
   return (...args: T) => {
     let result: R
     for (const func of funcs) {
-      result = func(...args)
+      if (typeof func === 'function') {
+        result = func(...args)
+      }
     }
 
     return result!
