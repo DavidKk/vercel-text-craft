@@ -4,6 +4,7 @@ import * as TOML from '@iarna/toml'
  * Check if the text is a valid TOML
  */
 export function isToml(text: string) {
+  if (!text) return false
   try {
     TOML.parse(text)
     return true

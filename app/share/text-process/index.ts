@@ -8,7 +8,7 @@ import { isTomlArray } from '@/utils/toml'
  * Handle text input, parse text to text segments
  */
 export function processInputText(text: string) {
-  const normalizedText = text.normalize('NFKC')
+  const normalizedText = text.normalize('NFKC').trim()
   if (isJsonArray(normalizedText)) {
     return processInputCollection(normalizedText, 'json')
   }
@@ -25,8 +25,9 @@ export function processInputText(text: string) {
       return
     }
 
+    const texts = text.split(/[-]/).map((item) => item.trim())
     positions.push({
-      texts: [text],
+      texts: [text, ...texts],
       startLine: index + 1,
       endLine: index + 1,
       startColumn: 0,

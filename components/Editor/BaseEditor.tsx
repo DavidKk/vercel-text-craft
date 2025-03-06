@@ -25,12 +25,22 @@ export default React.memo(
     const { storageKey, onChange, disabled } = props
     const editorRef = useRef<HTMLDivElement>(null)
 
+    const copySelectedText = () => {
+      const selection = window.getSelection()
+      const selectedText = selection?.toString()
+      if (selectedText) {
+        navigator.clipboard.writeText(selectedText)
+      }
+    }
+
     const copyVisibleContent = () => {
       if (!editorRef.current) {
         return
       }
 
-      const content = getText()
+      const selection = window.getSelection()
+      const selectedText = selection?.toString()
+      const content = selectedText || getText()
       navigator.clipboard.writeText(content)
     }
 
@@ -136,35 +146,65 @@ export default React.memo(
       setHiehgt(clientHeight)
     }
 
+    /** Handle backspace key press event */
+    const handleBackspace = (event: React.KeyboardEvent<HTMLElement>, selection: Selection) => {
+      if (!selection || !editorRef.current) {
+        return
+      }
+
+      if (selection.rangeCount > 0) {
+        return
+      }
+
+      const range = selection.getRangeAt(0)
+      if (!range) {
+        return
+      }
+
+      if (range.startOffset === range.endOffset) {
+        return
+      }
+
+      event.preventDefault()
+
+      const fragment = document.createDocumentFragment()
+      fragment.appendChild(range.cloneContents())
+
+      range.deleteContents()
+
+      const { innerHTML: html, innerText } = editorRef.current
+      const text = innerText.replaceAll('\n\n', '\n')
+      onChange(text, html)
+    }
+
+    /** Handle copy command (Ctrl/Cmd + C) */
+    const handleCopy = (event: React.KeyboardEvent<HTMLElement>) => {
+      event.preventDefault()
+      copySelectedText()
+    }
+
+    /** Handle save command (Ctrl/Cmd + S) */
+    const handleSave = (event: React.KeyboardEvent<HTMLElement>) => {
+      event.preventDefault()
+      saveCache()
+    }
+
+    /** Handle undo command (Ctrl/Cmd + Z) */
+    const handleUndo = (event: React.KeyboardEvent<HTMLElement>) => {
+      event.preventDefault()
+      loadCache()
+    }
+
+    /** Handle keyboard events */
     const onKeyDown: React.KeyboardEventHandler<HTMLElement> = (event) => {
       if (event.key === 'Backspace') {
-        const selection = window.getSelection()
-        if (!selection || !editorRef.current) {
-          return
-        }
-
-        const range = selection.getRangeAt(0)
-        if (!range) {
-          return
-        }
-
-        event.preventDefault()
-
-        const fragment = document.createDocumentFragment()
-        fragment.appendChild(range.cloneContents())
-
-        range.deleteContents()
-
-        const { innerHTML: html, innerText } = editorRef.current
-        const text = innerText.replaceAll('\n\n', '\n')
-        onChange(text, html)
+        handleBackspace(event, window.getSelection()!)
         return
       }
 
       if (event.ctrlKey || event.metaKey) {
         if (event.key === 'c') {
-          event.preventDefault()
-          copyVisibleContent()
+          handleCopy(event)
           return
         }
 
@@ -173,14 +213,12 @@ export default React.memo(
         }
 
         if (event.key === 's' && storageKey) {
-          event.preventDefault()
-          saveCache()
+          handleSave(event)
           return
         }
 
         if (event.key === 'z') {
-          event.preventDefault()
-          loadCache()
+          handleUndo(event)
           return
         }
       }

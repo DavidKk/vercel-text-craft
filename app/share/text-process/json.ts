@@ -33,8 +33,11 @@ export function processJsonCollection(text: string): TextSegmentPosition[] {
  */
 function processString(element: any): TextSegmentPosition | null {
   if (element && element.type === 'Literal' && typeof element.value === 'string' && element.loc) {
+    const text: string = element.value
+    const texts = text.split(/[-]/).map((item) => item.trim())
+
     return {
-      texts: [element.value],
+      texts: [text, ...texts],
       startLine: (element.loc.start.line || 1) - 1,
       endLine: (element.loc.end.line || 1) - 1,
       startColumn: element.loc.start.column || 0,
@@ -54,7 +57,9 @@ function processObject(obj: any): TextSegmentPosition[] {
   const stringValues: string[] = []
   obj.properties.forEach((prop: any) => {
     if (prop.value.type === 'Literal' && typeof prop.value.value === 'string') {
-      stringValues.push(prop.value.value)
+      const text: string = prop.value.value
+      const texts = text.split(/[-]/).map((item) => item.trim())
+      stringValues.push(text, ...texts)
     } else if (prop.value.type === 'ObjectExpression') {
       result.push(...processObject(prop.value))
     } else if (prop.value.type === 'ArrayExpression') {
