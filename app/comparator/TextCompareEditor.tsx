@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useDebounce } from 'ahooks'
 import ReactEditor from '@/components/Editor/ReactEditor'
 import type { TextSegment } from '@/components/Editor/ReactEditor'
@@ -24,14 +24,15 @@ export interface TextCompareEditorProps {
 export default function TextCompareEditor(props: TextCompareEditorProps) {
   const { value, targetText, similarityThreshold, storageKey, onChange, viewMode = 'all' } = props
 
-  const debouncedText = useDebounce(value, { wait: 300 })
-  const debouncedTargetText = useDebounce(targetText, { wait: 300 })
-  const debouncedThreshold = useDebounce(similarityThreshold, { wait: 300 })
+  const debouncedText = useDebounce(value, { wait: 500 })
+  const debouncedTargetText = useDebounce(targetText, { wait: 500 })
+  const debouncedThreshold = useDebounce(similarityThreshold, { wait: 500 })
 
   const [segments, setSegments] = useState<TextSegment[]>([])
   const [processingBatch, setProcessingBatch] = useState(false)
   const [totalLines, setTotalLines] = useState(0)
   const [processedLines, setProcessedLines] = useState(0)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const processTextComparison = (sourceText: string, targetText: string) => {
     // Process input texts into line segments for comparison
@@ -121,7 +122,7 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
 
       // Schedule next batch or finish processing
       if (endIdx < aLines.length && !isCancelled) {
-        setTimeout(processNextBatch, 0)
+        timeoutRef.current = setTimeout(processNextBatch, 0)
       } else {
         setProcessingBatch(false)
       }
@@ -135,12 +136,26 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
     // Cleanup function for cancelling ongoing processing
     return () => {
       isCancelled = true
+
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+        timeoutRef.current = null
+      }
     }
   }
 
   useEffect(() => {
     return processTextComparison(debouncedText, debouncedTargetText)
-  }, [debouncedText, debouncedTargetText, debouncedThreshold])
+  }, [debouncedText, debouncedTargetText])
+
+  useEffect(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+
+      setProcessingBatch(false)
+    }
+  }, [value])
 
   let hiddenLines: number[] = []
   if (viewMode !== 'all') {
@@ -175,14 +190,7 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
         )}
       </div>
 
-      <ReactEditor
-        disabled={processingBatch || viewMode !== 'all'}
-        value={debouncedText}
-        onChange={onChange}
-        segments={segments}
-        storageKey={storageKey}
-        hiddenLines={hiddenLines}
-      />
+      <ReactEditor disabled={viewMode !== 'all'} value={debouncedText} onChange={onChange} segments={segments} storageKey={storageKey} hiddenLines={hiddenLines} />
     </>
   )
 }

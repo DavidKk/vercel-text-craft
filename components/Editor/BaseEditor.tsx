@@ -113,28 +113,44 @@ export default React.memo(
       onChange(text, html)
     }
 
-    const onPaste = () => {
-      setTimeout(() => {
-        if (!editorRef.current) {
-          return
-        }
+    const onPaste = (event: React.ClipboardEvent<HTMLDivElement>) => {
+      event.preventDefault()
 
-        const text = editorRef.current.innerText
-        if (!text) {
-          return
-        }
+      if (!editorRef.current) {
+        return
+      }
 
-        const lines = text.split('\n')
-        const wrappedContents = lines.map((line) => `<div>${line}</div>`)
-        editorRef.current.innerHTML = wrappedContents.join('')
+      const fragment = document.createDocumentFragment()
+      const selection = window.getSelection()
+      const range = selection?.getRangeAt(0)
 
-        const { innerText, innerHTML } = editorRef.current
-        onChange(innerText, innerHTML)
+      if (!range) {
+        return
+      }
 
-        if (storageKey) {
-          localStorage.setItem(storageKey, innerHTML)
-        }
+      // 如果有选中内容，先删除
+      if (range.startOffset !== range.endOffset) {
+        range.deleteContents()
+      }
+
+      const clipboardText = event.clipboardData.getData('text/plain')
+      const lines = clipboardText.split('\n')
+      const wrappedContents = lines.map((line) => {
+        const div = document.createElement('div')
+        div.textContent = line || '\u200B' // 使用零宽空格确保空行也能保持
+        return div
       })
+
+      wrappedContents.forEach((div) => fragment.appendChild(div))
+      range.insertNode(fragment)
+
+      const { innerText, innerHTML } = editorRef.current
+      const text = innerText.replaceAll('\n\n', '\n')
+      onChange(text, innerHTML)
+
+      if (storageKey) {
+        localStorage.setItem(storageKey, innerHTML)
+      }
     }
 
     const onResize = () => {
@@ -152,7 +168,7 @@ export default React.memo(
         return
       }
 
-      if (selection.rangeCount > 0) {
+      if (selection.rangeCount === 0) {
         return
       }
 
@@ -183,6 +199,13 @@ export default React.memo(
       copySelectedText()
     }
 
+    /** Handle cut command (Ctrl/Cmd + X) */
+    const handleCut = (event: React.KeyboardEvent<HTMLElement>) => {
+      event.preventDefault()
+      copySelectedText()
+      handleBackspace(event, window.getSelection()!)
+    }
+
     /** Handle save command (Ctrl/Cmd + S) */
     const handleSave = (event: React.KeyboardEvent<HTMLElement>) => {
       event.preventDefault()
@@ -195,8 +218,121 @@ export default React.memo(
       loadCache()
     }
 
+    /** Get the direct child node of editor */
+    const getEditorChildNode = (node: Node | null): HTMLElement | null => {
+      if (!node || !editorRef.current) {
+        return null
+      }
+
+      // 先检查节点自身是否为编辑器的直接子节点
+      if (node instanceof HTMLElement && node.parentElement === editorRef.current) {
+        return node
+      }
+
+      // 如果不是，则向上遍历父节点
+      let current = node.parentElement
+      while (current) {
+        if (current.parentElement === editorRef.current) {
+          return current
+        }
+        current = current.parentElement
+      }
+
+      return null
+    }
+
+    /** Handle tab key press event */
+    const handleTab = (event: React.KeyboardEvent<HTMLElement>, selection: Selection) => {
+      event.preventDefault()
+      event.stopPropagation()
+
+      if (!selection || !editorRef.current) {
+        return
+      }
+
+      const range = selection.getRangeAt(0)
+      if (!range) {
+        return
+      }
+
+      // 如果没有选中内容，直接在光标位置插入两个空格
+      if (range.collapsed) {
+        const textNode = document.createTextNode('  ')
+        range.insertNode(textNode)
+        range.setStartAfter(textNode)
+        range.setEndAfter(textNode)
+        selection.removeAllRanges()
+        selection.addRange(range)
+
+        const { innerHTML: html, innerText } = editorRef.current
+        const text = innerText.replaceAll('\n\n', '\n')
+        onChange(text, html)
+        return
+      }
+
+      // 获取选中内容的起始和结束节点
+      const startNode = getEditorChildNode(range.startContainer)
+      const endNode = getEditorChildNode(range.endContainer)
+      if (!startNode || !endNode) {
+        return
+      }
+
+      // 获取所有需要缩进的行
+      const lines: Element[] = []
+      let currentNode: Element | null = startNode
+      while (currentNode && currentNode !== endNode.nextElementSibling) {
+        if (currentNode.parentElement === editorRef.current) {
+          lines.push(currentNode)
+        }
+
+        currentNode = currentNode.nextElementSibling
+      }
+
+      // 对每一行添加缩进
+      lines.forEach((line) => {
+        const text = line.textContent || ''
+        line.textContent = '  ' + text
+      })
+
+      const newRange = document.createRange()
+      newRange.setStart(startNode.firstChild!, 0)
+      newRange.setEnd(endNode.firstChild!, endNode.firstChild!.textContent!.length)
+
+      const startTime = Date.now()
+      const checkSelection = () => {
+        if (Date.now() - startTime > 2000) {
+          return
+        }
+
+        if (selection.rangeCount === 0) {
+          requestAnimationFrame(checkSelection)
+          return
+        }
+
+        const range = selection.getRangeAt(0)
+        if (
+          range.startContainer !== newRange.startContainer ||
+          range.endContainer !== newRange.endContainer ||
+          range.startOffset !== newRange.startOffset ||
+          range.endOffset !== newRange.endOffset
+        ) {
+          selection.removeAllRanges()
+          selection.addRange(newRange)
+          requestAnimationFrame(checkSelection)
+          return
+        }
+      }
+
+      requestAnimationFrame(checkSelection)
+    }
+
     /** Handle keyboard events */
     const onKeyDown: React.KeyboardEventHandler<HTMLElement> = (event) => {
+      if (event.key === 'Tab') {
+        handleTab(event, window.getSelection()!)
+        return
+      }
+
       if (event.key === 'Backspace') {
         handleBackspace(event, window.getSelection()!)
         return
@@ -205,6 +341,11 @@ export default React.memo(
       if (event.ctrlKey || event.metaKey) {
         if (event.key === 'c') {
           handleCopy(event)
+          return
+        }
+
+        if (event.key === 'x') {
+          handleCut(event)
           return
         }
 
