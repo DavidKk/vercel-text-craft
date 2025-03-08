@@ -28,9 +28,19 @@ export default React.memo(
     const copySelectedText = () => {
       const selection = window.getSelection()
       const selectedText = selection?.toString()
-      if (selectedText) {
-        navigator.clipboard.writeText(selectedText)
+      if (!selectedText) {
+        return
       }
+
+      const text = selectedText.trim()
+      navigator.clipboard.writeText(text)
+    }
+
+    const cleanText = (text: string): string => {
+      return text
+        .replace(/[\u200B-\u200D\uFEFF]/g, '')
+        .replaceAll('\n\n', '\n')
+        .trim()
     }
 
     const copyVisibleContent = () => {
@@ -40,8 +50,56 @@ export default React.memo(
 
       const selection = window.getSelection()
       const selectedText = selection?.toString()
-      const content = selectedText || getText()
+      const content = cleanText(selectedText || getText())
       navigator.clipboard.writeText(content)
+    }
+
+    const normalizeHtml = (html: string): string => {
+      const tempDiv = document.createElement('div')
+      tempDiv.innerHTML = html
+
+      // Get all div elements
+      const allDivs = tempDiv.getElementsByTagName('div')
+      const normalizedDivs: HTMLDivElement[] = []
+
+      // Iterate through all divs, keep only the leaf-level divs
+      for (let i = 0; i < allDivs.length; i++) {
+        const div = allDivs[i]
+        // Check if this is a leaf-level div (contains no other divs)
+        if (!div.getElementsByTagName('div').length) {
+          // Check if div has actual content (not just whitespace and line breaks)
+          const content = div.textContent?.trim()
+          if (content && content !== '\u200B') {
+            normalizedDivs.push(div)
+          }
+        }
+      }
+
+      // Process text content not wrapped in divs
+      const textNodes = Array.from(tempDiv.childNodes).filter((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim())
+
+      // Create new divs for text nodes
+      textNodes.forEach((node) => {
+        const content = node.textContent?.trim()
+        if (content) {
+          const newDiv = document.createElement('div')
+          newDiv.textContent = content
+          normalizedDivs.push(newDiv)
+        }
+      })
+
+      // Return empty string if there's no content
+      if (!normalizedDivs.length && !tempDiv.textContent?.trim()) {
+        return ''
+      }
+
+      // If there are no divs but there is text content, wrap the text in a div
+      if (!normalizedDivs.length && tempDiv.textContent?.trim()) {
+        return `<div>${tempDiv.textContent}</div>`
+      }
+
+      // Combine all normalized divs into final HTML string
+      return normalizedDivs.map((div) => div.outerHTML).join('')
     }
 
     const loadCache = () => {
@@ -54,10 +112,12 @@ export default React.memo(
         return
       }
 
-      editorRef.current.innerHTML = savedContent
+      const normalizedContent = normalizeHtml(savedContent)
+      editorRef.current.innerHTML = normalizedContent
 
       const { innerText, innerHTML } = editorRef.current
-      onChange(innerText, innerHTML)
+      const text = cleanText(innerText)
+      onChange(text, innerHTML)
     }
 
     const saveCache = () => {
@@ -93,7 +153,6 @@ export default React.memo(
       }
 
       editorRef.current.innerHTML = html
-      saveCache()
     }
 
     const getElement = () => {
@@ -108,8 +167,7 @@ export default React.memo(
       }
 
       const { innerHTML: html, innerText } = editorRef.current
-      const text = innerText.replaceAll('\n\n', '\n')
-
+      const text = cleanText(innerText)
       onChange(text, html)
     }
 
@@ -144,8 +202,12 @@ export default React.memo(
       wrappedContents.forEach((div) => fragment.appendChild(div))
       range.insertNode(fragment)
 
+      // 规范化粘贴后的内容
+      const normalizedContent = normalizeHtml(editorRef.current.innerHTML)
+      editorRef.current.innerHTML = normalizedContent
+
       const { innerText, innerHTML } = editorRef.current
-      const text = innerText.replaceAll('\n\n', '\n')
+      const text = cleanText(innerText)
       onChange(text, innerHTML)
 
       if (storageKey) {
@@ -177,7 +239,7 @@ export default React.memo(
         return
       }
 
-      if (range.startOffset === range.endOffset) {
+      if (range.collapsed) {
         return
       }
 
@@ -189,56 +251,8 @@ export default React.memo(
       range.deleteContents()
 
       const { innerHTML: html, innerText } = editorRef.current
-      const text = innerText.replaceAll('\n\n', '\n')
+      const text = cleanText(innerText)
       onChange(text, html)
-    }
-
-    /** Handle copy command (Ctrl/Cmd + C) */
-    const handleCopy = (event: React.KeyboardEvent<HTMLElement>) => {
-      event.preventDefault()
-      copySelectedText()
-    }
-
-    /** Handle cut command (Ctrl/Cmd + X) */
-    const handleCut = (event: React.KeyboardEvent<HTMLElement>) => {
-      event.preventDefault()
-      copySelectedText()
-      handleBackspace(event, window.getSelection()!)
-    }
-
-    /** Handle save command (Ctrl/Cmd + S) */
-    const handleSave = (event: React.KeyboardEvent<HTMLElement>) => {
-      event.preventDefault()
-      saveCache()
-    }
-
-    /** Handle undo command (Ctrl/Cmd + Z) */
-    const handleUndo = (event: React.KeyboardEvent<HTMLElement>) => {
-      event.preventDefault()
-      loadCache()
-    }
-
-    /** Get the direct child node of editor */
-    const getEditorChildNode = (node: Node | null): HTMLElement | null => {
-      if (!node || !editorRef.current) {
-        return null
-      }
-
-      // First check if the node itself is a direct child of the editor
-      if (node instanceof HTMLElement && node.parentElement === editorRef.current) {
-        return node
-      }
-
-      // If not, traverse up through parent nodes
-      let current = node.parentElement
-      while (current) {
-        if (current.parentElement === editorRef.current) {
-          return current
-        }
-        current = current.parentElement
-      }
-
-      return null
     }
 
     /** Handle tab key press event */
@@ -265,7 +279,7 @@ export default React.memo(
         selection.addRange(range)
 
         const { innerHTML: html, innerText } = editorRef.current
-        const text = innerText.replaceAll('\n\n', '\n')
+        const text = cleanText(innerText)
         onChange(text, html)
         return
       }
@@ -324,6 +338,54 @@ export default React.memo(
       }
 
       requestAnimationFrame(checkSelection)
+    }
+
+    /** Handle copy command (Ctrl/Cmd + C) */
+    const handleCopy = (event: React.KeyboardEvent<HTMLElement>) => {
+      event.preventDefault()
+      copySelectedText()
+    }
+
+    /** Handle cut command (Ctrl/Cmd + X) */
+    const handleCut = (event: React.KeyboardEvent<HTMLElement>) => {
+      event.preventDefault()
+      copySelectedText()
+      handleBackspace(event, window.getSelection()!)
+    }
+
+    /** Handle save command (Ctrl/Cmd + S) */
+    const handleSave = (event: React.KeyboardEvent<HTMLElement>) => {
+      event.preventDefault()
+      saveCache()
+    }
+
+    /** Handle undo command (Ctrl/Cmd + Z) */
+    const handleUndo = (event: React.KeyboardEvent<HTMLElement>) => {
+      event.preventDefault()
+      loadCache()
+    }
+
+    /** Get the direct child node of editor */
+    const getEditorChildNode = (node: Node | null): HTMLElement | null => {
+      if (!node || !editorRef.current) {
+        return null
+      }
+
+      // First check if the node itself is a direct child of the editor
+      if (node instanceof HTMLElement && node.parentElement === editorRef.current) {
+        return node
+      }
+
+      // If not, traverse up through parent nodes
+      let current = node.parentElement
+      while (current) {
+        if (current.parentElement === editorRef.current) {
+          return current
+        }
+        current = current.parentElement
+      }
+
+      return null
     }
 
     /** Handle keyboard events */

@@ -146,7 +146,7 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
 
   useEffect(() => {
     return processTextComparison(debouncedText, debouncedTargetText)
-  }, [debouncedText, debouncedTargetText])
+  }, [debouncedText, debouncedTargetText, debouncedThreshold])
 
   useEffect(() => {
     if (timeoutRef.current) {

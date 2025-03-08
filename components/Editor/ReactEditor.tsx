@@ -52,7 +52,6 @@ export default function ReactEditor(props: ReactEditorProps) {
 
   const rawUid = useId()
   const uid = useMemo(() => `${rawUid.replace(/[^a-zA-Z0-9]/g, '')}`, [rawUid])
-
   const editorRef = useRef<BaseEditorRef>(null)
   const [internalValue, setValue] = useState<string>('')
   const lineNumbers = useMemo(() => internalValue.split('\n').length + 1, [internalValue])
@@ -155,7 +154,7 @@ export default function ReactEditor(props: ReactEditorProps) {
             ))}
           </div>
 
-          <Style prefix={`.${uid} .editor > div`} lines={diffLines} style="background-color:rgb(251 207 232 / var(--tw-bg-opacity, 1));" />
+          <Style prefix={`.${uid} .editor > div`} lines={diffLines} style="background-color:rgba(251,207,232,.5);" />
           <Style prefix={`.${uid} .editor > div`} lines={hiddenLines} style="display:none;" />
           <BaseEditor disabled={disabled} storageKey={storageKey} onChange={combineFuncs(onChange, setValue)} ref={editorRef} />
         </div>

@@ -3,7 +3,7 @@ import type { TextSegmentPosition } from '@/components/Editor/ReactEditor'
 
 export function processJsonCollection(text: string): TextSegmentPosition[] {
   try {
-    // 将 JSON 对象包装在数组中以符合 ACORN 解析器要求
+    // Wrap JSON object in an array to comply with ACORN parser requirements
     const wrappedText = `[\n${text}]`
     const ast = Parser.parse(wrappedText, {
       ecmaVersion: 'latest',
@@ -95,7 +95,7 @@ function processArray(elements: any[]): TextSegmentPosition[] {
     } else if (element.type === 'ObjectExpression') {
       result.push(...processObject(element))
     } else if (element.type === 'ArrayExpression') {
-      // 递归处理嵌套数组中的每个元素
+      // Recursively process each element in nested arrays
       result.push(...processArray(element.elements))
     }
   })
