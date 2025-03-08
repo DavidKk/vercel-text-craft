@@ -128,7 +128,7 @@ export default React.memo(
         return
       }
 
-      // 如果有选中内容，先删除
+      // Delete selected content if any
       if (range.startOffset !== range.endOffset) {
         range.deleteContents()
       }
@@ -137,7 +137,7 @@ export default React.memo(
       const lines = clipboardText.split('\n')
       const wrappedContents = lines.map((line) => {
         const div = document.createElement('div')
-        div.textContent = line || '\u200B' // 使用零宽空格确保空行也能保持
+        div.textContent = line || '\u200B' // Use zero-width space to preserve empty lines
         return div
       })
 
@@ -224,12 +224,12 @@ export default React.memo(
         return null
       }
 
-      // 先检查节点自身是否为编辑器的直接子节点
+      // First check if the node itself is a direct child of the editor
       if (node instanceof HTMLElement && node.parentElement === editorRef.current) {
         return node
       }
 
-      // 如果不是，则向上遍历父节点
+      // If not, traverse up through parent nodes
       let current = node.parentElement
       while (current) {
         if (current.parentElement === editorRef.current) {
@@ -255,7 +255,7 @@ export default React.memo(
         return
       }
 
-      // 如果没有选中内容，直接在光标位置插入两个空格
+      // If no text is selected, insert two spaces at cursor position
       if (range.collapsed) {
         const textNode = document.createTextNode('  ')
         range.insertNode(textNode)
@@ -270,14 +270,14 @@ export default React.memo(
         return
       }
 
-      // 获取选中内容的起始和结束节点
+      // Get start and end nodes of selected content
       const startNode = getEditorChildNode(range.startContainer)
       const endNode = getEditorChildNode(range.endContainer)
       if (!startNode || !endNode) {
         return
       }
 
-      // 获取所有需要缩进的行
+      // Get all lines that need indentation
       const lines: Element[] = []
       let currentNode: Element | null = startNode
       while (currentNode && currentNode !== endNode.nextElementSibling) {
@@ -288,7 +288,7 @@ export default React.memo(
         currentNode = currentNode.nextElementSibling
       }
 
-      // 对每一行添加缩进
+      // Add indentation to each line
       lines.forEach((line) => {
         const text = line.textContent || ''
         line.textContent = '  ' + text
