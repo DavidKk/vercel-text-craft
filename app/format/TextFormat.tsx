@@ -5,15 +5,13 @@ import { useDebounce } from 'ahooks'
 import ReactEditor from '@/components/Editor/ReactEditor'
 import FormatTabs from '@/components/FormatTabs'
 import { formatText } from './utils'
+import { FORMAT_TYPES, type FormatType } from './constants'
 
 export interface FormatResult {
   success: boolean
   result: string
   error?: string
 }
-
-type FormatType = 'json' | 'toml' | 'yaml' | 'csv' | 'text'
-const FORMAT_TYPES = ['json', 'toml', 'yaml', 'csv', 'text'] as const satisfies FormatType[]
 
 export default function TextFormat() {
   const [sourceText, setSourceText] = useState('')

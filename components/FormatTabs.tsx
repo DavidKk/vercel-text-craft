@@ -18,7 +18,7 @@ export default function FormatTabs<T extends string>(props: FormatTabsProps<T>) 
             {format.toUpperCase()}
           </button>
         )
-      })}    
+      })}
     </div>
   )
 }

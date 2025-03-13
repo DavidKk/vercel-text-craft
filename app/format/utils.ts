@@ -1,4 +1,4 @@
-import { type FormatType } from './FormatTabs'
+import type { FormatType } from './constants'
 
 export function formatText(text: string, format: FormatType) {
   try {
