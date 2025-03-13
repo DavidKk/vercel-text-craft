@@ -51,11 +51,7 @@ export default function JsonFinder() {
         </div>
 
         <div className="w-1/2 flex flex-col h-full">
-          {formattedTexts.map((text, index) => (
-            <pre className="bg-gray-200 p-2 text-xs overflow-auto" key={index}>
-              {formatText(text, targetFormat)}
-            </pre>
-          ))}
+          <ReactEditor value={formattedTexts.join('\n')} />
         </div>
       </div>
     </div>

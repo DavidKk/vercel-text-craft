@@ -1,5 +1,5 @@
 import * as TOML from '@iarna/toml'
-import type { TextSegmentPosition } from '@/components/Editor/ReactEditor'
+import type { TextSegmentPosition } from '@/components/Editor/types'
 
 /**
  * Process TOML array data into text segments

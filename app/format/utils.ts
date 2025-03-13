@@ -14,7 +14,7 @@ export function formatText(text: string, format: FormatType) {
         result = `data = ${JSON.stringify(data, null, 2)}`
         break
       case 'yaml':
-        result = data.map((item: string) => `- ${item}`).join('\n')
+        result = `data\n${data.map((item: string) => `  - ${item}`).join('\n')}`
         break
       case 'csv':
         result = 'data\n' + data.join('\n')

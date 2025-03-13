@@ -7,6 +7,7 @@ import { isJson } from '@/utils/json'
 import { isToml } from '@/utils/toml'
 import { checkArrayContentConsistency, checkObjectStructure, findCompatibleArray, checkArrayTypeConsistency, findLongestArray, setValueByPath } from '@/utils/array'
 import { MOCK_JSON_LIST, MOCK_JSON_APPEND_LIST, MOCK_TOML_LIST } from './mock-data'
+import { formatText } from '../json-extractor/utils'
 
 export default function TextMerger() {
   const [elementScope, setElementScope] = useState('')
@@ -63,7 +64,7 @@ export default function TextMerger() {
   }
 
   const dataType = isJson(elementScope) ? 'json' : isToml(elementScope) ? 'toml' : 'text'
-  const renderData = (data: any) => {
+  const renderData = (data: any): string => {
     try {
       if (dataType === 'json') {
         return JSON.stringify(data, null, 2)
@@ -79,7 +80,7 @@ export default function TextMerger() {
     }
   }
 
-  const mergeData = () => {
+  const mergeData = (): string => {
     try {
       const data1 = parseInputData(elementScope)
       const data2 = parseInputData(newData)
@@ -89,11 +90,11 @@ export default function TextMerger() {
       }
 
       if (!data1) {
-        return data2
+        return ''
       }
 
       if (!data2) {
-        return data1
+        return ''
       }
 
       // If source data is an object, find and merge the longest array
@@ -159,7 +160,7 @@ export default function TextMerger() {
         </div>
 
         <div className="w-1/2">
-          <ReactEditor value={mergedResult} disabled storageKey="merge-r" />
+          <ReactEditor value={mergedResult} disabled />
         </div>
       </div>
     </div>

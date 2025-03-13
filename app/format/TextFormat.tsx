@@ -34,11 +34,11 @@ export default function TextFormat() {
 
       <div className="flex gap-1 w-full min-h-[500px] h-[70vh]">
         <div className="w-1/2">
-          <ReactEditor segments={[]} onChange={setSourceText} storageKey="text-format-source" />
+          <ReactEditor onChange={setSourceText} storageKey="text-format-source" />
         </div>
 
         <div className="w-1/2">
-          <ReactEditor value={formattedText} segments={[]} onChange={setSourceText} />
+          <ReactEditor value={formattedText} />
         </div>
       </div>
     </div>
