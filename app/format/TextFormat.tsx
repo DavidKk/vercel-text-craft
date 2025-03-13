@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useDebounce } from 'ahooks'
 import ReactEditor from '@/components/Editor/ReactEditor'
-import FormatTabs, { type FormatType } from './FormatTabs'
+import FormatTabs from '@/components/FormatTabs'
 import { formatText } from './utils'
 
 export interface FormatResult {
@@ -11,6 +11,9 @@ export interface FormatResult {
   result: string
   error?: string
 }
+
+type FormatType = 'json' | 'toml' | 'yaml' | 'csv' | 'text'
+const FORMAT_TYPES = ['json', 'toml', 'yaml', 'csv', 'text'] as const satisfies FormatType[]
 
 export default function TextFormat() {
   const [sourceText, setSourceText] = useState('')
@@ -20,14 +23,15 @@ export default function TextFormat() {
 
   useEffect(() => {
     if (debouncedText) {
-      formatText(debouncedText, targetFormat).then(setFormattedText)
+      const content = formatText(debouncedText, targetFormat)
+      setFormattedText(content)
     }
   }, [debouncedText, targetFormat])
 
   return (
     <div className="w-full flex flex-col gap-2">
       <div className="flex justify-end">
-        <FormatTabs value={targetFormat} onChange={setTargetFormat} />
+        <FormatTabs value={targetFormat} onChange={setTargetFormat} types={FORMAT_TYPES} />
       </div>
 
       <div className="flex gap-1 w-full min-h-[500px] h-[70vh]">

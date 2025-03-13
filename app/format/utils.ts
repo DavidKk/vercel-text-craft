@@ -1,6 +1,6 @@
 import { type FormatType } from './FormatTabs'
 
-export async function formatText(text: string, format: FormatType): Promise<string> {
+export function formatText(text: string, format: FormatType) {
   try {
     const lines = text.split('\n').filter((line) => line.trim())
     let data = lines.map((line) => line.trim())

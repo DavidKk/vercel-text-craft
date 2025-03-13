@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { ALLOWED_KEYS } from './constants'
 
 export interface BaseEditorProps {
   /** Key for storing editor content in localStorage */
@@ -427,8 +428,11 @@ export default React.memo(
       }
 
       if (disabled) {
-        event.preventDefault()
-        event.stopPropagation()
+        if (!(ALLOWED_KEYS as readonly string[]).includes(event.key)) {
+          event.preventDefault()
+          event.stopPropagation()
+        }
+
         return
       }
     }
