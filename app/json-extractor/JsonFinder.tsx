@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useDebounce } from 'ahooks'
 import ReactEditor from '@/components/Editor/ReactEditor'
 import FormatTabs from '@/components/FormatTabs'
-import { formatText } from './utils'
 import { findJsonStrings } from './json-finder'
 
 type FormatType = 'json' | 'toml' | 'yaml'

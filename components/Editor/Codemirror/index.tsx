@@ -3,13 +3,14 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { basicSetup } from 'codemirror'
 import { StateField, EditorState } from '@codemirror/state'
-import { EditorView, Decoration } from '@codemirror/view'
+import { EditorView, Decoration, keymap } from '@codemirror/view'
+import { indentWithTab } from '@codemirror/commands'
 import type { Range } from '@codemirror/state'
 import type { DecorationSet } from '@codemirror/view'
 import useStorage from './hooks/useStorage'
 import useDrop from './hooks/useDrop'
 import Container from './Container'
-import { getEditorValue, setEditorValue } from './utils'
+import { setEditorValue } from './utils'
 
 export interface CodemirrorProps {
   value?: string
@@ -74,6 +75,7 @@ export default function Codemirror(props: CodemirrorProps) {
         basicSetup,
         decorationField,
         ...extensions,
+        keymap.of([indentWithTab]),
         EditorView.editable.of(!disabled),
         EditorView.updateListener.of((update) => {
           if (!update.docChanged) {
