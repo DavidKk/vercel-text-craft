@@ -93,6 +93,8 @@ export default function Codemirror(props: CodemirrorProps) {
       parent: containerRef.current,
     })
 
+    view.dom.style.height = '100%'
+
     editorRef.current = view
     setStorageEditor(view)
     setDropEditor(view)
