@@ -5,7 +5,7 @@ import JsonFinder from './JsonFinder'
 
 const metaProps = {
   title: 'JSON Extractor',
-  description: 'Extract and format JSON strings from text content',
+  description: 'Extract and format JSON strings from text content. Supports drag-and-drop file loading for easy data input.',
   keywords: ['JSON', 'extractor', 'parser', 'formatter'],
 }
 

@@ -4,7 +4,7 @@ import TextMerger from './TextMerger'
 const { generateMetadata, metaProps } = generate({
   title: 'Data Merger - Text Craft',
   description:
-    'Merge and combine different data formats intelligently. Supports merging text lists, JSON arrays, nested objects, and complex data structures. Features smart array detection, structure consistency checking, and flexible merging strategies. Ideal for data integration, configuration merging, and content consolidation.',
+    'Merge and combine different data formats intelligently. Supports merging text lists, JSON arrays, nested objects, and complex data structures. Features smart array detection, structure consistency checking, and flexible merging strategies. Ideal for data integration, configuration merging, and content consolidation. Supports drag-and-drop file loading for easy data input.',
 })
 
 export { generateMetadata }

@@ -3,7 +3,7 @@ import TextFormat from './TextFormat'
 
 const { generateMetadata, metaProps } = generate({
   title: 'Text Format - Text Craft',
-  description: 'Convert text content between different data formats, supporting conversions among JSON, TOML, YAML, and other formats.',
+  description: 'Convert text content between different data formats, supporting conversions among JSON, TOML, YAML, and other formats. Supports drag-and-drop file loading for easy data input.',
 })
 
 export { generateMetadata }
