@@ -8,6 +8,7 @@ import { indentWithTab } from '@codemirror/commands'
 import type { Range } from '@codemirror/state'
 import type { DecorationSet } from '@codemirror/view'
 import Container from './Container'
+import { useStorage } from './hooks/useStorage'
 
 export interface CodemirrorProps {
   value?: string
@@ -31,57 +32,51 @@ export default function Codemirror(props: CodemirrorProps) {
   const editorRef = useRef<EditorView>(null)
   const highlightLinesRef = useRef<number[]>([])
 
-  const setValue = (value: string) => {
-    if (!editorRef.current || !value) {
-      return
+  const { setValue, saveToStorage, loadFromStorage } = useStorage({
+    storageKey,
+    editorRef,
+  })
+
+  const handleDrop = async (e: DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    const files = Array.from(e.dataTransfer?.files || [])
+    if (files.length === 0) return
+
+    const file = files[0]
+    // 10MB size limit
+    if (file.size > 10 * 1024 * 1024) return
+
+    try {
+      // Check if file is text
+      const isText = file.type.startsWith('text/') || ['application/json', 'application/xml', 'application/javascript'].includes(file.type)
+      if (!isText) return
+
+      const content = await file.text()
+      setValue(content)
+    } catch (err) {
+      console.error('Failed to read file:', err)
     }
-
-    const editor = editorRef.current
-    const { state } = editor
-    const doc = state.doc
-    const currentValue = doc.toString()
-
-    if (currentValue === value) {
-      return
-    }
-
-    editorRef.current?.dispatch({
-      changes: {
-        from: 0,
-        to: doc.length,
-        insert: value,
-      },
-    })
   }
 
-  const getValue = () => {
-    if (!editorRef.current) {
-      return ''
-    }
-
-    const { state } = editorRef.current
-    return state.doc.toString()
+  const handleDragOver = (e: DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
   }
 
-  const saveToStorage = () => {
-    if (!storageKey || !editorRef.current) {
-      return false
+  useEffect(() => {
+    if (!containerRef.current) return
+
+    const container = containerRef.current
+    container.addEventListener('drop', handleDrop)
+    container.addEventListener('dragover', handleDragOver)
+
+    return () => {
+      container.removeEventListener('drop', handleDrop)
+      container.removeEventListener('dragover', handleDragOver)
     }
-
-    const content = getValue()
-    localStorage.setItem(storageKey, content)
-    return true
-  }
-
-  const loadFromStorage = () => {
-    if (!storageKey || !editorRef.current) {
-      return false
-    }
-
-    const content = localStorage.getItem(storageKey)
-    content && setValue(content)
-    return true
-  }
+  }, [])
 
   useEffect(() => {
     if (!containerRef.current) {
@@ -177,7 +172,7 @@ export default function Codemirror(props: CodemirrorProps) {
       return ''
     }
 
-    const lines = getValue().split('\n')
+    const lines = editorRef.current.state.doc.toString().split('\n')
     return lines.filter((content, index) => !hiddenLines.includes(index + 1) && content.trim()).join('\n')
   }, [hiddenLines])
 
