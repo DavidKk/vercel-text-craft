@@ -3,12 +3,13 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { basicSetup } from 'codemirror'
 import { StateField, EditorState } from '@codemirror/state'
-import { EditorView, Decoration, keymap } from '@codemirror/view'
-import { indentWithTab } from '@codemirror/commands'
+import { EditorView, Decoration } from '@codemirror/view'
 import type { Range } from '@codemirror/state'
 import type { DecorationSet } from '@codemirror/view'
+import useStorage from './hooks/useStorage'
+import useDrop from './hooks/useDrop'
 import Container from './Container'
-import { useStorage } from './hooks/useStorage'
+import { getEditorValue, setEditorValue } from './utils'
 
 export interface CodemirrorProps {
   value?: string
@@ -29,54 +30,11 @@ export interface CodemirrorProps {
 export default function Codemirror(props: CodemirrorProps) {
   const { value, onChange, disabled, highlightLines, hiddenLines, storageKey, noStyle } = props
   const containerRef = useRef<HTMLDivElement>(null)
-  const editorRef = useRef<EditorView>(null)
+  const editorRef = useRef<EditorView | null>(null)
   const highlightLinesRef = useRef<number[]>([])
 
-  const { setValue, saveToStorage, loadFromStorage } = useStorage({
-    storageKey,
-    editorRef,
-  })
-
-  const handleDrop = async (e: DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-
-    const files = Array.from(e.dataTransfer?.files || [])
-    if (files.length === 0) return
-
-    const file = files[0]
-    // 10MB size limit
-    if (file.size > 10 * 1024 * 1024) return
-
-    try {
-      // Check if file is text
-      const isText = file.type.startsWith('text/') || ['application/json', 'application/xml', 'application/javascript'].includes(file.type)
-      if (!isText) return
-
-      const content = await file.text()
-      setValue(content)
-    } catch (err) {
-      console.error('Failed to read file:', err)
-    }
-  }
-
-  const handleDragOver = (e: DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-  }
-
-  useEffect(() => {
-    if (!containerRef.current) return
-
-    const container = containerRef.current
-    container.addEventListener('drop', handleDrop)
-    container.addEventListener('dragover', handleDragOver)
-
-    return () => {
-      container.removeEventListener('drop', handleDrop)
-      container.removeEventListener('dragover', handleDragOver)
-    }
-  }, [])
+  const { extensions, setEditor: setStorageEditor } = useStorage({ storageKey, disabled })
+  const { setEditor: setDropEditor } = useDrop({ disabled })
 
   useEffect(() => {
     if (!containerRef.current) {
@@ -110,26 +68,12 @@ export default function Codemirror(props: CodemirrorProps) {
       provide: (f) => EditorView.decorations.from(f),
     })
 
-    const keymapExtenstion = keymap.of([
-      indentWithTab,
-      {
-        mac: 'Cmd-s',
-        win: 'Ctrl-s',
-        linux: 'Ctrl-s',
-        preventDefault: true,
-        run: () => {
-          saveToStorage()
-          return true
-        },
-      },
-    ])
-
     const startState = EditorState.create({
       doc: value || '',
       extensions: [
         basicSetup,
         decorationField,
-        keymapExtenstion,
+        ...extensions,
         EditorView.editable.of(!disabled),
         EditorView.updateListener.of((update) => {
           if (!update.docChanged) {
@@ -148,18 +92,21 @@ export default function Codemirror(props: CodemirrorProps) {
     })
 
     editorRef.current = view
+    setStorageEditor(view)
+    setDropEditor(view)
 
     return () => {
       view.destroy()
     }
-  }, [])
+  }, [extensions])
 
   useEffect(() => {
-    loadFromStorage()
-  }, [])
+    const editor = editorRef.current
+    if (!editor) {
+      return
+    }
 
-  useEffect(() => {
-    setValue(value || '')
+    setEditorValue(editor, value || '')
   }, [value])
 
   useEffect(() => {

@@ -1,75 +1,84 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
+import { keymap } from '@codemirror/view'
 import type { EditorView } from '@codemirror/view'
+import type { Extension } from '@codemirror/state'
+import { getEditorValue, setEditorValue } from '../utils'
+
+const DEFAULT_SAVE_SHORTCUTS = {
+  mac: 'Cmd-s',
+  win: 'Ctrl-s',
+  linux: 'Ctrl-s',
+}
 
 export interface UseStorageOptions {
   /** Key for storing editor content in localStorage */
   storageKey?: string
-  /** Editor view reference */
-  editorRef: React.RefObject<EditorView | null>
+  /** Custom save shortcut key, default is 'Mod-s' */
+  saveShortcuts?: Record<'mac' | 'win' | 'linux', string>
+  /** Whether to disable storage, default is false */
+  disabled?: boolean
 }
 
-export function useStorage({ storageKey, editorRef }: UseStorageOptions) {
-  const getValue = useCallback(() => {
-    if (!editorRef.current) {
-      return ''
-    }
-
-    const { state } = editorRef.current
-    return state.doc.toString()
-  }, [editorRef])
-
-  const setValue = useCallback(
-    (value: string) => {
-      if (!editorRef.current || !value) {
-        return
-      }
-
-      const editor = editorRef.current
-      const { state } = editor
-      const doc = state.doc
-      const currentValue = doc.toString()
-
-      if (currentValue === value) {
-        return
-      }
-
-      editorRef.current?.dispatch({
-        changes: {
-          from: 0,
-          to: doc.length,
-          insert: value,
-        },
-      })
-    },
-    [editorRef]
-  )
+export default function useStorage(options: UseStorageOptions) {
+  const { storageKey, saveShortcuts = DEFAULT_SAVE_SHORTCUTS, disabled = false } = options
+  const editorRef = useRef<EditorView | null>(null)
 
   const saveToStorage = useCallback(() => {
-    if (!storageKey || !editorRef.current) {
+    if (!storageKey || !editorRef.current || !disabled) {
       return false
     }
 
-    const content = getValue()
+    const content = getEditorValue(editorRef.current)
     localStorage.setItem(storageKey, content)
+
     return true
-  }, [storageKey, getValue])
+  }, [storageKey])
 
   const loadFromStorage = useCallback(() => {
-    if (!storageKey || !editorRef.current) {
+    if (!storageKey || !editorRef.current || !disabled) {
       return false
     }
 
     const content = localStorage.getItem(storageKey)
-    content && setValue(content)
-    return true
-  }, [storageKey, setValue])
+    if (!content) {
+      return false
+    }
 
-  return {
-    getValue,
-    setValue,
-    saveToStorage,
-    loadFromStorage,
-  }
+    setEditorValue(editorRef.current, content)
+    return true
+  }, [storageKey])
+
+  const extensions = useMemo<Extension[]>(() => {
+    if (!storageKey) {
+      return []
+    }
+
+    return [
+      keymap.of([
+        {
+          ...saveShortcuts,
+          preventDefault: true,
+          run: () => {
+            saveToStorage()
+            return true
+          },
+        },
+      ]),
+    ]
+  }, [saveToStorage])
+
+  const setEditor = useCallback(
+    (editor: EditorView) => {
+      editorRef.current = editor
+
+      requestAnimationFrame(() => {
+        loadFromStorage()
+      })
+    },
+    [loadFromStorage]
+  )
+
+  return { extensions, saveToStorage, loadFromStorage, setEditor }
 }
