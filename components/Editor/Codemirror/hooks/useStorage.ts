@@ -26,7 +26,7 @@ export default function useStorage(options: UseStorageOptions) {
   const editorRef = useRef<EditorView | null>(null)
 
   const saveToStorage = useCallback(() => {
-    if (!storageKey || !editorRef.current || !disabled) {
+    if (!storageKey || !editorRef.current || disabled) {
       return false
     }
 
@@ -37,7 +37,7 @@ export default function useStorage(options: UseStorageOptions) {
   }, [storageKey])
 
   const loadFromStorage = useCallback(() => {
-    if (!storageKey || !editorRef.current || !disabled) {
+    if (!storageKey || !editorRef.current || disabled) {
       return false
     }
 
