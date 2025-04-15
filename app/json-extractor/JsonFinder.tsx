@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useDebounce } from 'ahooks'
 import ReactEditor from '@/components/Editor/ReactEditor'
 import FormatTabs from '@/components/FormatTabs'
-import { findJsonStrings } from './json-finder'
+import { detectDominantQuote, extractAllStrings } from './string'
 import { MOCK_STRING } from './mock-data'
 
 type FormatType = 'json' | 'toml' | 'yaml'
@@ -26,17 +26,29 @@ export default function JsonFinder() {
       return
     }
 
-    const jsonStrings = findJsonStrings(debouncedText)
-    const formattedStrings: string[] = []
-    for (const jsonString of jsonStrings) {
-      try {
-        const parsed = JSON.parse(jsonString)
-        const formatted = JSON.stringify(parsed, null, 2)
-        formattedStrings.push(formatted)
-      } catch {}
-    }
+    const quote = detectDominantQuote(debouncedText)
+    const fixedText = [debouncedText, `${quote}${debouncedText}`, `${debouncedText}${quote}`]
 
-    setFormattedTexts(formattedStrings)
+    for (const text of fixedText) {
+      const jsonStrings = extractAllStrings(text)
+      const formattedStrings: string[] = []
+      for (const jsonString of jsonStrings) {
+        try {
+          const parsed = JSON.parse(jsonString)
+          if (typeof parsed !== 'object') {
+            continue
+          }
+
+          const formatted = JSON.stringify(parsed, null, 2)
+          formattedStrings.push(formatted)
+        } catch {}
+      }
+
+      if (formattedStrings.length) {
+        setFormattedTexts(formattedStrings)
+        break
+      }
+    }
   }
 
   useEffect(() => {
@@ -59,7 +71,7 @@ export default function JsonFinder() {
         </div>
 
         <div className="w-1/2 flex flex-col h-full">
-          <ReactEditor value={formattedTexts.join('\n')} />
+          <ReactEditor value={formattedTexts.join('\n')} disabled />
         </div>
       </div>
     </div>
