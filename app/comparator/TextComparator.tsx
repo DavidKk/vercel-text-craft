@@ -23,7 +23,7 @@ export default function TextComparator() {
 
   return (
     <div className="w-full flex flex-col gap-2">
-      <div className="flex justify-between">
+      <div className="flex justify-between gap-2 flex-wrap md:flex-nowrap">
         <div className="flex items-center gap-2">
           <label className="text-xs font-medium">Similarity Threshold:</label>
           <input
@@ -38,12 +38,12 @@ export default function TextComparator() {
           <span className="text-xs">{(similarityThreshold * 100).toFixed(0)}%</span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center">
           <div className="flex gap-2">
-            <button className="px-3 py-1 text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50" onClick={handleMockData}>
+            <button className="whitespace-nowrap px-3 py-1 text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50" onClick={handleMockData}>
               Try JSON
             </button>
-            <button className="hidden px-3 py-1 text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50" onClick={handleTomlMockData}>
+            <button className="hidden whitespace-nowrap px-3 py-1 text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50" onClick={handleTomlMockData}>
               Try TOML
             </button>
           </div>
@@ -60,9 +60,11 @@ export default function TextComparator() {
         </div>
       </div>
 
-      <div className="flex gap-1 w-full">
-        <div className="w-1/2 h-[60vh]">
+      <div className="flex flex-col md:flex-row gap-1 w-full md:min-h-[500px] md:h-[64vh]">
+        <div className="w-full md:w-1/2 min-h-[250px] h-full">
           <TextCompareEditor
+            title="Source Data"
+            className="min-h-[70vh] max-h-[800px] md:min-h-[100%]"
             value={leftText}
             targetText={rightText}
             similarityThreshold={similarityThreshold}
@@ -72,8 +74,10 @@ export default function TextComparator() {
           />
         </div>
 
-        <div className="w-1/2 h-[60vh]">
+        <div className="w-full md:w-1/2 min-h-[250px] h-full">
           <TextCompareEditor
+            title="Compare Data"
+            className="min-h-[70vh] max-h-[800px] md:min-h-[100%]"
             value={rightText}
             targetText={leftText}
             similarityThreshold={similarityThreshold}

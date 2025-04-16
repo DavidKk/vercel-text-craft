@@ -140,27 +140,27 @@ export default function TextMerger() {
     <div className="flex flex-col gap-2">
       <div className="flex justify-end mb-2">
         <div className="flex gap-2">
-          <button className="px-3 py-1 text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50" onClick={handleMockData}>
+          <button className="px-3 py-1 whitespace-nowrap text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50" onClick={handleMockData}>
             Try JSON
           </button>
-          <button className="hidden px-3 py-1 text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50" onClick={handleTomlMockData}>
+          <button className="hidden px-3 py-1 whitespace-nowrap text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50" onClick={handleTomlMockData}>
             Try TOML
           </button>
         </div>
       </div>
-      <div className="flex gap-1 w-full h-[60vh]">
-        <div className="flex flex-col w-1/2 gap-1">
-          <div className="h-1/2">
-            <ReactEditor value={elementScope} onChange={setElementScope} storageKey="merge-lt" />
+      <div className="flex flex-col md:flex-row gap-1 w-full md:min-h-[500px] md:h-[64vh]">
+        <div className="flex flex-col gap-1 w-full md:w-1/2 min-h-[250px] h-full">
+          <div className="md:h-1/2">
+            <ReactEditor className="min-h-[40vh] md:min-h-[auto]" title="Origin datas" value={elementScope} onChange={setElementScope} storageKey="merge-lt" />
           </div>
 
-          <div className="h-1/2">
-            <ReactEditor value={newData} onChange={setNewData} storageKey="merge-lb" />
+          <div className="md:h-1/2">
+            <ReactEditor className="min-h-[40vh] md:min-h-[auto]" title="Need merge datas" value={newData} onChange={setNewData} storageKey="merge-lb" />
           </div>
         </div>
 
-        <div className="w-1/2">
-          <ReactEditor value={mergedResult} disabled />
+        <div className="w-full md:w-1/2 min-h-[250px] h-full">
+          <ReactEditor className="min-h-[40vh] md:min-h-[auto]" title="Merged result" value={mergedResult} disabled />
         </div>
       </div>
     </div>

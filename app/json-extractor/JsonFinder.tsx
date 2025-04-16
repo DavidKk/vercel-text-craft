@@ -16,18 +16,17 @@ export default function JsonFinder() {
   const [sourceText, setSourceText] = useState('')
   const [formattedTexts, setFormattedTexts] = useState<string[]>([])
   const [targetFormat, setTargetFormat] = useState<FormatType>('json')
-  const [activeTabKey, setActiveTabKey] = useState('0')
+  const [activeTabKey, setActiveTabKey] = useState(0)
   const debouncedText = useDebounce(sourceText, { wait: 300 })
 
   const handleMockData = () => {
     setSourceText(MOCK_STRING)
   }
 
-  const handleFormat = async () => {
-    setActiveTabKey('0')
-    setFormattedTexts([])
-
+  const extractJson = async () => {
     if (!debouncedText) {
+      setActiveTabKey(0)
+      setFormattedTexts([])
       return
     }
 
@@ -51,6 +50,10 @@ export default function JsonFinder() {
       }
 
       if (formattedStrings.length) {
+        if (activeTabKey >= formattedStrings.length) {
+          setActiveTabKey(0)
+        }
+
         setFormattedTexts(formattedStrings)
         break
       }
@@ -58,30 +61,36 @@ export default function JsonFinder() {
   }
 
   useEffect(() => {
-    handleFormat()
+    extractJson()
   }, [debouncedText, targetFormat])
 
   return (
     <div className="w-full flex flex-col gap-2">
       <div className="flex justify-end gap-2">
-        <button className="px-3 py-1 text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50" onClick={handleMockData}>
+        <button className="px-3 py-1 whitespace-nowrap text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50" onClick={handleMockData}>
           Try JSON
         </button>
 
         <FormatTabs value={targetFormat} onChange={setTargetFormat} types={FINDER_FORMAT_TYPES} />
       </div>
 
-      <div className="flex gap-1 w-full min-h-[500px] h-[70vh]">
-        <div className="w-1/2">
-          <ReactEditor value={sourceText} onChange={setSourceText} storageKey="json-finder-source" />
+      <div className="flex flex-col md:flex-row gap-1 w-full md:min-h-[500px] md:h-[70vh]">
+        <div className="w-full md:w-1/2 min-h-[250px] h-full">
+          <ReactEditor
+            title={<div className="flex items-center h-6 px-1">Content</div>}
+            className="min-h-[70vh] md:min-h-[100%]"
+            value={sourceText}
+            onChange={setSourceText}
+            storageKey="json-finder-source"
+          />
         </div>
 
-        <div className="w-1/2 flex flex-col h-full gap-1">
+        <div className="w-full md:w-1/2 flex flex-col h-full gap-1">
           {!formattedTexts?.length ? (
-            <ReactEditor disabled />
+            <ReactEditor title={<div className="flex items-center h-6 px-1">Result</div>} className="min-h-[70vh] md:min-h-[100%]" disabled />
           ) : (
             <>
-              <div className="flex items-center justify-between bg-indigo-200 p-1">
+              <div className="flex items-center justify-between bg-indigo-100 p-1 rounded-md">
                 <h1 className="text-xs font-bold select-none pl-2">Found {formattedTexts?.length} JSON</h1>
                 <div className="flex">
                   <Tabs
@@ -89,14 +98,14 @@ export default function JsonFinder() {
                       key: index.toString(),
                       label: `JSON ${index + 1}`,
                     }))}
-                    activeKey={activeTabKey}
-                    onChange={setActiveTabKey}
+                    activeKey={activeTabKey.toString()}
+                    onChange={(key) => setActiveTabKey(parseInt(key))}
                   />
                 </div>
               </div>
 
               <div className="overflow-y-auto h-full">
-                <ReactEditor value={formattedTexts[parseInt(activeTabKey)]} disabled />
+                <ReactEditor className="min-h-[70vh] md:min-h-[100%]" value={formattedTexts[activeTabKey]} disabled />
               </div>
             </>
           )}

@@ -35,13 +35,13 @@ export default function TextFormat() {
         <FormatTabs value={targetFormat} onChange={setTargetFormat} types={FINDER_FORMAT_TYPES} />
       </div>
 
-      <div className="flex gap-1 w-full min-h-[500px] h-[70vh]">
-        <div className="w-1/2">
-          <ReactEditor value={sourceText} onChange={setSourceText} storageKey="text-format-source" />
+      <div className="flex flex-col md:flex-row gap-1 w-full md:min-h-[500px] md:h-[70vh]">
+        <div className="w-full md:w-1/2 min-h-[250px] h-full">
+          <ReactEditor title="Source" className="min-h-[70vh] md:min-h-[100%]" value={sourceText} onChange={setSourceText} storageKey="text-format-source" />
         </div>
 
-        <div className="w-1/2">
-          <ReactEditor value={formattedText} />
+        <div className="w-full md:w-1/2 min-h-[250px] h-full">
+          <ReactEditor title="Formatted" className="min-h-[70vh] md:min-h-[100%]" value={formattedText} />
         </div>
       </div>
     </div>

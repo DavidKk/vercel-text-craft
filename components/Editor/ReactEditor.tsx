@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo, useId, useEffect, useCallback } from 'react'
+import React, { useMemo, useId, useCallback } from 'react'
 import toml from '@iarna/toml'
 import FeatherIcon from 'feather-icons-react'
 import { isJson } from '@/utils/json'
@@ -11,6 +11,8 @@ import type { TextSegment } from './types'
 export type { TextSegment } from './types'
 
 export interface ReactEditorProps extends CodemirrorProps {
+  className?: string
+  title?: React.ReactNode
   /** show prettier button */
   enablePrettier?: boolean
   /** auto prettier when value changed */
@@ -55,7 +57,7 @@ function getDataType(value?: string) {
 }
 
 export default function ReactEditor(props: ReactEditorProps) {
-  const { value, onChange, enablePrettier = true, autoPrettier = false, segments, storageKey, disabled, hiddenLines } = props
+  const { className = '', title, value, onChange, enablePrettier = true, autoPrettier = false, segments, storageKey, disabled, hiddenLines } = props
 
   const rawUid = useId()
   const uid = useMemo(() => `${rawUid.replace(/[^a-zA-Z0-9]/g, '')}`, [rawUid])
@@ -116,30 +118,34 @@ export default function ReactEditor(props: ReactEditorProps) {
   }, [segments])
 
   return (
-    <div className={`h-full group editor-container ${uid} flex relative`}>
-      <div className="absolute z-10 right-5 top-2">
-        <button
-          className="p-1 bg-indigo-100 opacity-0 group-hover:opacity-50 hover:!opacity-100 hover:bg-indigo-200 rounded-sm transition-all"
-          onClick={copyVisibleContent}
-          title="copy full text"
-        >
-          <FeatherIcon icon="copy" className="h-4 w-4 text-indigo-900" />
-        </button>
-      </div>
+    <div className={`${className} h-full flex flex-col gap-1`}>
+      {title ? <h2 className="text-xs bg-indigo-100 py-1 px-2 rounded-md font-bold">{title}</h2> : null}
 
-      <div className="flex gap-2 absolute z-10 right-5 bottom-5 text-xs font-extrabold text-indigo-600 uppercase">
-        {!(enablePrettier && canPrettier) ? null : (
-          <span
-            className="cursor-pointer select-none p-1 bg-indigo-100 opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:bg-indigo-200 rounded-sm transition-all"
-            onClick={handleFormatText}
+      <div className={`flex editor-container group ${uid} flex-1 w-full h-full relative overflow-y-auto`}>
+        <div className="absolute z-10 right-5 top-2">
+          <button
+            className="p-1 bg-indigo-100 opacity-0 group-hover:opacity-50 hover:!opacity-100 hover:bg-indigo-200 rounded-sm transition-all"
+            onClick={copyVisibleContent}
+            title="copy full text"
           >
-            Pritter
-          </span>
-        )}
-        <span className="select-none p-1 bg-indigo-100 opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:bg-indigo-200 rounded-sm transition-all">{dataType}</span>
-      </div>
+            <FeatherIcon icon="copy" className="h-4 w-4 text-indigo-900" />
+          </button>
+        </div>
 
-      <Codemirror value={value} onChange={handleChange} storageKey={storageKey} disabled={disabled} highlightLines={highlightLines} hiddenLines={hiddenLines} />
+        <div className="flex gap-2 absolute z-10 right-5 bottom-5 text-xs font-extrabold text-indigo-600 uppercase">
+          {!(enablePrettier && canPrettier) ? null : (
+            <span
+              className="cursor-pointer select-none p-1 bg-indigo-100 opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:bg-indigo-200 rounded-sm transition-all"
+              onClick={handleFormatText}
+            >
+              Pritter
+            </span>
+          )}
+          <span className="select-none p-1 bg-indigo-100 opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:bg-indigo-200 rounded-sm transition-all">{dataType}</span>
+        </div>
+
+        <Codemirror value={value} onChange={handleChange} storageKey={storageKey} disabled={disabled} highlightLines={highlightLines} hiddenLines={hiddenLines} />
+      </div>
     </div>
   )
 }
