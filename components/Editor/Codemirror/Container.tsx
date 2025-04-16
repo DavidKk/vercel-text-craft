@@ -10,5 +10,5 @@ export default function Container(props: ContainerProps) {
     return children
   }
 
-  return <div className="flex flex-1 border rounded-b-md overflow-hidden">{children}</div>
+  return <div className="flex flex-1 border rounded-md overflow-hidden">{children}</div>
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useDebounce } from 'ahooks'
 import ReactEditor from '@/components/Editor/ReactEditor'
 import FormatTabs from '@/components/FormatTabs'
+import Tabs from '@/components/Tabs'
 import { detectDominantQuote, extractAllStrings } from './string'
 import { MOCK_STRING } from './mock-data'
 
@@ -15,6 +16,7 @@ export default function JsonFinder() {
   const [sourceText, setSourceText] = useState('')
   const [formattedTexts, setFormattedTexts] = useState<string[]>([])
   const [targetFormat, setTargetFormat] = useState<FormatType>('json')
+  const [activeTabKey, setActiveTabKey] = useState('0')
   const debouncedText = useDebounce(sourceText, { wait: 300 })
 
   const handleMockData = () => {
@@ -22,6 +24,9 @@ export default function JsonFinder() {
   }
 
   const handleFormat = async () => {
+    setActiveTabKey('0')
+    setFormattedTexts([])
+
     if (!debouncedText) {
       return
     }
@@ -32,6 +37,7 @@ export default function JsonFinder() {
     for (const text of fixedText) {
       const jsonStrings = extractAllStrings(text)
       const formattedStrings: string[] = []
+
       for (const jsonString of jsonStrings) {
         try {
           const parsed = JSON.parse(jsonString)
@@ -70,8 +76,30 @@ export default function JsonFinder() {
           <ReactEditor value={sourceText} onChange={setSourceText} storageKey="json-finder-source" />
         </div>
 
-        <div className="w-1/2 flex flex-col h-full">
-          <ReactEditor value={formattedTexts.join('\n')} disabled />
+        <div className="w-1/2 flex flex-col h-full gap-1">
+          {!formattedTexts?.length ? (
+            <ReactEditor disabled />
+          ) : (
+            <>
+              <div className="flex items-center justify-between bg-indigo-200 p-1">
+                <h1 className="text-xs font-bold select-none pl-2">Found {formattedTexts?.length} JSON</h1>
+                <div className="flex">
+                  <Tabs
+                    items={formattedTexts.map((_, index) => ({
+                      key: index.toString(),
+                      label: `JSON ${index + 1}`,
+                    }))}
+                    activeKey={activeTabKey}
+                    onChange={setActiveTabKey}
+                  />
+                </div>
+              </div>
+
+              <div className="overflow-y-auto h-full">
+                <ReactEditor value={formattedTexts[parseInt(activeTabKey)]} disabled />
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
