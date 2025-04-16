@@ -7,6 +7,7 @@ import FormatTabs from '@/components/FormatTabs'
 import Tabs from '@/components/Tabs'
 import { detectDominantQuote, extractAllStrings } from './string'
 import { MOCK_STRING } from './mock-data'
+import { formatText } from './utils'
 
 type FormatType = 'json' | 'toml' | 'yaml'
 
@@ -23,11 +24,9 @@ export default function JsonFinder() {
     setSourceText(MOCK_STRING)
   }
 
-  const extractJson = async () => {
+  const extractJson = () => {
     if (!debouncedText) {
-      setActiveTabKey(0)
-      setFormattedTexts([])
-      return
+      return []
     }
 
     const quote = detectDominantQuote(debouncedText)
@@ -50,19 +49,21 @@ export default function JsonFinder() {
       }
 
       if (formattedStrings.length) {
-        if (activeTabKey >= formattedStrings.length) {
-          setActiveTabKey(0)
-        }
-
-        setFormattedTexts(formattedStrings)
-        break
+        return formattedStrings
       }
     }
+
+    return []
   }
 
   useEffect(() => {
-    extractJson()
-  }, [debouncedText, targetFormat])
+    const formattedStrings = extractJson()
+    if (activeTabKey >= formattedStrings?.length) {
+      setActiveTabKey(0)
+    }
+
+    setFormattedTexts(formattedStrings)
+  }, [debouncedText])
 
   return (
     <div className="w-full flex flex-col gap-2">
@@ -105,7 +106,7 @@ export default function JsonFinder() {
               </div>
 
               <div className="overflow-y-auto h-full">
-                <ReactEditor className="min-h-[70vh] md:min-h-[100%]" value={formattedTexts[activeTabKey]} disabled />
+                <ReactEditor className="min-h-[70vh] md:min-h-[100%]" value={formatText(formattedTexts[activeTabKey], targetFormat)} disabled />
               </div>
             </>
           )}
