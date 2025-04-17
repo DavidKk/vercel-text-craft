@@ -88,7 +88,7 @@ export default function JsonFinder() {
 
         <div className="w-full md:w-1/2 flex flex-col h-full gap-1">
           {!formattedTexts?.length ? (
-            <ReactEditor title={<div className="flex items-center h-6 px-1">Result</div>} className="min-h-[70vh] md:min-h-[100%]" disabled />
+            <ReactEditor title={<div className="flex items-center h-6 px-1">Result</div>} className="min-h-[60vh] md:min-h-[100%]" disabled />
           ) : (
             <>
               <div className="flex items-center justify-between bg-indigo-100 p-1 rounded-md">
