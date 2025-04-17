@@ -38,7 +38,7 @@ export default function TextComparator() {
           <span className="text-xs">{(similarityThreshold * 100).toFixed(0)}%</span>
         </div>
 
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           <div className="flex gap-2">
             <button className="whitespace-nowrap px-3 py-1 text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50" onClick={handleMockData}>
               Try JSON
