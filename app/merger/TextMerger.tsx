@@ -160,7 +160,7 @@ export default function TextMerger() {
         </div>
 
         <div className="w-full md:w-1/2 min-h-[250px] h-full">
-          <ReactEditor className="min-h-[40vh] md:min-h-[auto]" title="Merged result" value={mergedResult} disabled />
+          <ReactEditor className="min-h-[40vh] md:min-h-[auto]" title="Merged result" value={mergedResult} />
         </div>
       </div>
     </div>

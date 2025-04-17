@@ -106,7 +106,7 @@ export default function JsonFinder() {
               </div>
 
               <div className="overflow-y-auto h-full">
-                <ReactEditor className="min-h-[70vh] md:min-h-[100%]" value={formatText(formattedTexts[activeTabKey], targetFormat)} disabled />
+                <ReactEditor className="min-h-[70vh] md:min-h-[100%]" value={formatText(formattedTexts[activeTabKey], targetFormat)} />
               </div>
             </>
           )}
