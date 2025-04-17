@@ -148,7 +148,7 @@ export default function TextMerger() {
           </button>
         </div>
       </div>
-      <div className="flex flex-col md:flex-row gap-1 w-full md:min-h-[500px] md:h-[64vh]">
+      <div className="flex flex-col md:flex-row gap-1 w-full md:min-h-[500px] md:h-[60vh]">
         <div className="flex flex-col gap-1 w-full md:w-1/2 min-h-[250px] h-full">
           <div className="md:h-1/2">
             <ReactEditor className="min-h-[40vh] md:min-h-[auto]" title="Origin datas" value={elementScope} onChange={setElementScope} storageKey="merge-lt" />
