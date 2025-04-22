@@ -1,7 +1,7 @@
 /**
  * Check content consistency between two arrays
  */
-export const checkArrayContentConsistency = (sourceArray: any[], targetArray: any[]): boolean => {
+export function checkArrayContentConsistency(sourceArray: any[], targetArray: any[]): boolean {
   if (sourceArray.length === 0 || targetArray.length === 0) {
     return true
   }
@@ -25,7 +25,7 @@ export const checkArrayContentConsistency = (sourceArray: any[], targetArray: an
 /**
  * Check if two objects have the same structure
  */
-export const checkObjectStructure = (sourceObj: any, targetObj: any): boolean => {
+export function checkObjectStructure(sourceObj: any, targetObj: any): boolean {
   const sourceKeys = Object.keys(sourceObj)
   const targetKeys = Object.keys(targetObj)
 
@@ -38,10 +38,10 @@ export const checkObjectStructure = (sourceObj: any, targetObj: any): boolean =>
 /**
  * Find a compatible array within an object that matches the target array
  */
-export const findCompatibleArray = (sourceObj: any, targetArray: any[]): { path: string[]; array: any[] } | null => {
+export function findCompatibleArray(sourceObj: any, targetArray: any[]): { path: string[]; array: any[] } | null {
   let result: { path: string[]; array: any[] } | null = null
 
-  const traverse = (current: any, path: string[] = []) => {
+  function traverse(current: any, path: string[] = []) {
     if (Array.isArray(current) && checkArrayContentConsistency(current, targetArray)) {
       if (!result || current.length > result.array.length) {
         result = { path, array: current }
@@ -60,7 +60,7 @@ export const findCompatibleArray = (sourceObj: any, targetArray: any[]): { path:
 /**
  * Check type consistency within an array
  */
-export const checkArrayTypeConsistency = (array: any[]): boolean => {
+export function checkArrayTypeConsistency(array: any[]): boolean {
   if (array.length <= 1) {
     return true
   }
@@ -71,10 +71,10 @@ export const checkArrayTypeConsistency = (array: any[]): boolean => {
 /**
  * Find the longest array within an object and return its path and content
  */
-export const findLongestArray = (obj: any): { path: string[]; array: any[] } | null => {
+export function findLongestArray(obj: any): { path: string[]; array: any[] } | null {
   let result: { path: string[]; array: any[] } | null = null
 
-  const traverse = (current: any, path: string[] = []) => {
+  function traverse(current: any, path: string[] = []) {
     if (Array.isArray(current)) {
       if (!result || current.length > result.array.length) {
         result = { path, array: current }
@@ -93,7 +93,7 @@ export const findLongestArray = (obj: any): { path: string[]; array: any[] } | n
 /**
  * Set a value at a specific path within an object
  */
-export const setValueByPath = (obj: any, path: string[], value: any): any => {
+export function setValueByPath(obj: any, path: string[], value: any): any {
   if (path.length === 0) {
     return value
   }

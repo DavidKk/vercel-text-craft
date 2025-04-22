@@ -106,10 +106,37 @@ description = "A collection of classical music"
   album = "Sonata No. 1"
 `
 
-// [favorites]
-// name = 'My Favorite Songs'
-// description = 'A collection of favorite songs'
-// list = [
-//   { songId = '1006', songName = 'Smells Like Teen Spirit', artist = 'Nirvana', album = 'Nevermind', duration = '05:01', url = 'https://music.example.com/song?id=1006' },
-//   { songId = '1007', songName = 'Billie Jean', artist = 'Michael Jackson', album = 'Thriller', duration = '04:54', url = 'https://music.example.com/song?id=1007' }
-// ]
+export const MOCK_MARKDOWN_LIST = `
+# Song List
+
+Here are my favorites:
+
+\`\`\`json
+[
+  {
+    "songId": "2001",
+    "songName": "Yesterday",
+    "artist": "The Beatles"
+  },
+  {
+    "songId": "2002",
+    "songName": "Hey Jude",
+    "artist": "The Beatles"
+  }
+]
+\`\`\`
+
+More classical music:
+
+\`\`\`toml
+[classical]
+name = "Classical Music"
+description = "A collection of classical music"
+
+  [[classical.list]]
+  songId = "2003"
+  songName = "Canon in D"
+  artist = "Pachelbel"
+  album = "Baroque Favorites"
+\`\`\`
+`

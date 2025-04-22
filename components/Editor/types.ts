@@ -11,12 +11,13 @@ export interface TextPosition {
 
 export interface TextSegmentPosition extends TextPosition {
   /** The text contents of the segment */
-  texts: string[]
+  texts?: string[]
 }
 
 export interface TextSegment extends TextSegmentPosition {
+  className: string
   /** Whether this segment is present in the comparison text */
-  isPresent: boolean
+  isPresent?: boolean
   /** Optional array of line numbers where this segment matches */
   matchingLines?: number[]
   /** Array of line numbers that are ignored due to overlapping with other segments */

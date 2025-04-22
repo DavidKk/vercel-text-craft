@@ -1,26 +1,35 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import * as TOML from '@iarna/toml'
 import ReactEditor from '@/components/Editor/ReactEditor'
 import { isJson } from '@/utils/json'
 import { isToml } from '@/utils/toml'
 import { checkArrayContentConsistency, checkObjectStructure, findCompatibleArray, checkArrayTypeConsistency, findLongestArray, setValueByPath } from '@/utils/array'
-import { MOCK_JSON_LIST, MOCK_JSON_APPEND_LIST, MOCK_TOML_LIST } from './mock-data'
-import { formatText } from '../json-extractor/utils'
+import { extractCodeBlocksFromMarkdown } from '@/utils/markdown'
+import Tabs from '@/components/Tabs'
+import { MOCK_JSON_LIST, MOCK_JSON_APPEND_LIST, MOCK_TOML_LIST, MOCK_MARKDOWN_LIST } from './mock-data'
+
+type DataType = 'json' | 'toml' | 'text'
 
 export default function TextMerger() {
-  const [elementScope, setElementScope] = useState('')
-  const [newData, setNewData] = useState('')
+  const [sourceContent, setSourceContent] = useState('')
+  const [newContent, setNewContent] = useState('')
+  const [activeTabKey, setActiveTabKey] = useState(0)
 
   const handleMockData = () => {
-    setElementScope(JSON.stringify(MOCK_JSON_LIST, null, 2))
-    setNewData(JSON.stringify(MOCK_JSON_APPEND_LIST, null, 2))
+    setSourceContent(JSON.stringify(MOCK_JSON_LIST, null, 2))
+    setNewContent(JSON.stringify(MOCK_JSON_APPEND_LIST, null, 2))
   }
 
   const handleTomlMockData = () => {
-    setElementScope(MOCK_TOML_LIST)
-    setNewData(JSON.stringify(MOCK_JSON_APPEND_LIST, null, 2))
+    setSourceContent(MOCK_TOML_LIST)
+    setNewContent(JSON.stringify(MOCK_JSON_APPEND_LIST, null, 2))
+  }
+
+  const handleMarkdownMockData = () => {
+    setSourceContent(MOCK_MARKDOWN_LIST)
+    setNewContent(JSON.stringify(MOCK_JSON_APPEND_LIST, null, 2))
   }
 
   const deepMerge = (value1: any, value2: any) => {
@@ -63,8 +72,7 @@ export default function TextMerger() {
     return value1
   }
 
-  const dataType = isJson(elementScope) ? 'json' : isToml(elementScope) ? 'toml' : 'text'
-  const renderData = (data: any): string => {
+  const renderData = (data: any, dataType: DataType): string => {
     try {
       if (dataType === 'json') {
         return JSON.stringify(data, null, 2)
@@ -75,15 +83,20 @@ export default function TextMerger() {
       }
 
       return data.join('\n')
-    } catch {
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to render data:', error)
       return data.join('\n')
     }
   }
 
-  const mergeData = (): string => {
+  const mergeData = (data: string, dataType: DataType): string => {
     try {
-      const data1 = parseInputData(elementScope)
-      const data2 = parseInputData(newData)
+      const source = data.toString()
+      dataType = isJson(source) ? 'json' : isToml(source) ? 'toml' : 'text'
+
+      const data1 = parseInputData(source)
+      const data2 = parseInputData(newContent.toString())
 
       if (!data1 && !data2) {
         return ''
@@ -105,7 +118,7 @@ export default function TextMerger() {
           if (checkArrayContentConsistency(longestArray.array, data2)) {
             const mergedArray = [...longestArray.array, ...data2]
             const result = setValueByPath(data1, longestArray.path, mergedArray)
-            return renderData(result)
+            return renderData(result, dataType)
           }
 
           // If content is inconsistent, try to find other compatible arrays
@@ -113,7 +126,7 @@ export default function TextMerger() {
           if (compatibleArray) {
             const mergedArray = [...compatibleArray.array, ...data2]
             const result = setValueByPath(data1, compatibleArray.path, mergedArray)
-            return renderData(result)
+            return renderData(result, dataType)
           }
         }
       }
@@ -121,12 +134,12 @@ export default function TextMerger() {
       // If source data is an array, merge directly
       if (Array.isArray(data1) && Array.isArray(data2)) {
         const merged = [...data1, ...data2]
-        return renderData(merged)
+        return renderData(merged, dataType)
       }
 
       // Use default merge logic for other cases
       const merged = deepMerge(data1, data2)
-      return renderData(merged)
+      return renderData(merged, dataType)
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Failed to merge data:', error)
@@ -134,7 +147,32 @@ export default function TextMerger() {
     }
   }
 
-  const mergedResult = mergeData()
+  const mergedResults = useMemo(() => {
+    const codeBlocks = extractCodeBlocksFromMarkdown(sourceContent)
+    if (codeBlocks?.length) {
+      return codeBlocks.map((item) => {
+        const dataType = item.type === 'json' ? 'json' : item.type === 'toml' ? 'toml' : 'text'
+        const data = mergeData(item.content, dataType)
+        return { data, dataType }
+      })
+    }
+
+    const dataType = isJson(sourceContent) ? 'json' : isToml(sourceContent) ? 'toml' : 'text'
+    const data = mergeData(sourceContent, dataType)
+    return [{ data, dataType }]
+  }, [sourceContent])
+
+  const finalActiveTabKey = useMemo(() => {
+    if (mergedResults?.length === 1) {
+      return 0
+    }
+
+    if (mergedResults?.length > 1 && activeTabKey > mergedResults?.length - 1) {
+      return mergedResults?.length - 1
+    }
+
+    return activeTabKey
+  }, [mergedResults, activeTabKey])
 
   return (
     <div className="flex flex-col gap-2">
@@ -143,24 +181,61 @@ export default function TextMerger() {
           <button className="px-3 py-1 whitespace-nowrap text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50" onClick={handleMockData}>
             Try JSON
           </button>
-          <button className="hidden px-3 py-1 whitespace-nowrap text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50" onClick={handleTomlMockData}>
+          <button className="px-3 py-1 whitespace-nowrap text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50" onClick={handleTomlMockData}>
             Try TOML
+          </button>
+          <button className="px-3 py-1 whitespace-nowrap text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50" onClick={handleMarkdownMockData}>
+            Try Markdown
           </button>
         </div>
       </div>
+
       <div className="flex flex-col md:flex-row gap-1 w-full md:min-h-[500px] md:h-[60vh]">
         <div className="flex flex-col gap-1 w-full md:w-1/2 min-h-[250px] h-full">
           <div className="md:h-1/2">
-            <ReactEditor className="min-h-[40vh] md:min-h-[auto]" title="Origin datas" value={elementScope} onChange={setElementScope} storageKey="merge-lt" />
+            <ReactEditor
+              className="min-h-[40vh] md:min-h-[auto]"
+              title={<div className="flex items-center h-6 px-1">Origin datas</div>}
+              value={sourceContent}
+              onChange={setSourceContent}
+              storageKey="merge-lt"
+            />
           </div>
-
           <div className="md:h-1/2">
-            <ReactEditor className="min-h-[40vh] md:min-h-[auto]" title="Need merge datas" value={newData} onChange={setNewData} storageKey="merge-lb" />
+            <ReactEditor
+              className="min-h-[40vh] md:min-h-[auto]"
+              title={<div className="flex items-center h-6 px-1">Need merge datas</div>}
+              value={newContent}
+              onChange={setNewContent}
+              storageKey="merge-lb"
+            />
           </div>
         </div>
 
-        <div className="w-full md:w-1/2 min-h-[250px] h-full">
-          <ReactEditor className="min-h-[40vh] md:min-h-[auto]" title="Merged result" value={mergedResult} />
+        <div className="w-full md:w-1/2 min-h-[250px] h-full flex flex-col gap-1">
+          {!mergedResults?.length ? (
+            <ReactEditor title={<div className="flex items-center h-6 px-1">Merged result</div>} className="min-h-[40vh] md:min-h-[auto]" disabled />
+          ) : (
+            <>
+              <div className="flex items-center justify-between bg-indigo-100 p-1 rounded-md">
+                <h1 className="text-xs font-bold select-none pl-2">Total {mergedResults.length}</h1>
+                <div className="flex">
+                  <Tabs
+                    activeKey={finalActiveTabKey.toString()}
+                    onChange={(key) => setActiveTabKey(parseInt(key))}
+                    items={mergedResults.map(({ dataType }, index) => ({
+                      key: index.toString(),
+                      label: `${dataType} ${index + 1}`.toUpperCase(),
+                    }))}
+                  />
+                </div>
+              </div>
+
+              <div className="overflow-y-auto h-full">
+                <ReactEditor className="min-h-[40vh] md:min-h-[auto]" value={mergedResults[finalActiveTabKey]?.data} disabled />
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -57,7 +57,7 @@ function getDataType(value?: string) {
 }
 
 export default function ReactEditor(props: ReactEditorProps) {
-  const { className = '', title, value, onChange, enablePrettier = true, autoPrettier = false, segments, storageKey, disabled, hiddenLines } = props
+  const { className = '', title, value, onChange, onBlur, enablePrettier = true, autoPrettier = false, segments, storageKey, disabled, hiddenLines } = props
 
   const rawUid = useId()
   const uid = useMemo(() => `${rawUid.replace(/[^a-zA-Z0-9]/g, '')}`, [rawUid])
@@ -99,18 +99,15 @@ export default function ReactEditor(props: ReactEditorProps) {
       return
     }
 
-    const lines: number[] = []
-    for (const { isPresent, startLine, endLine, ignoredLines = [] } of segments) {
-      if (isPresent) {
-        continue
-      }
-
+    const lines: Record<string, number[]> = {}
+    for (const { className, startLine, endLine, ignoredLines = [] } of segments) {
       for (let line = startLine; line <= endLine; line++) {
         if (ignoredLines.includes(line)) {
           continue
         }
 
-        lines.push(line)
+        lines[className] = lines[className] || []
+        lines[className].push(line)
       }
     }
 
@@ -144,7 +141,7 @@ export default function ReactEditor(props: ReactEditorProps) {
           <span className="select-none p-1 bg-indigo-100 opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:bg-indigo-200 rounded-sm transition-all">{dataType}</span>
         </div>
 
-        <Codemirror value={value} onChange={handleChange} storageKey={storageKey} disabled={disabled} highlightLines={highlightLines} hiddenLines={hiddenLines} />
+        <Codemirror value={value} onChange={handleChange} onBlur={onBlur} storageKey={storageKey} disabled={disabled} highlightLines={highlightLines} hiddenLines={hiddenLines} />
       </div>
     </div>
   )

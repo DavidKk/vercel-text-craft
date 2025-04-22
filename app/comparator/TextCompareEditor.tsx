@@ -61,13 +61,13 @@ export default function TextCompareEditor(props: TextCompareEditorProps) {
       // Calculate similarity for each segment in the batch against all target lines
       const batchResults = batch.map<TextSegment>(({ texts, ...props }) => {
         const maxSimilarity = calculateMaxSimilarity(
-          texts,
-          bLines.flatMap(({ texts }) => texts)
+          texts || [],
+          bLines.flatMap(({ texts }) => texts || [])
         )
 
         // Mark segment as present if similarity exceeds threshold
         const isPresent = maxSimilarity >= debouncedThreshold
-        return { ...props, texts, isPresent }
+        return { ...props, className: 'bg-red-100', texts, isPresent }
       })
 
       // Filter out segments that overlap with matched lines
