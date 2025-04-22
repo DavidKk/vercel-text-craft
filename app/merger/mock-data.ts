@@ -104,7 +104,7 @@ description = "A collection of classical music"
   songName = "Moonlight Sonata"
   artist = "Beethoven"
   album = "Sonata No. 1"
-`
+`.trim()
 
 export const MOCK_MARKDOWN_LIST = `
 # Song List
@@ -139,4 +139,4 @@ description = "A collection of classical music"
   artist = "Pachelbel"
   album = "Baroque Favorites"
 \`\`\`
-`
+`.trim()

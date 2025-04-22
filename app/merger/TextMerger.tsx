@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import * as TOML from '@iarna/toml'
 import ReactEditor from '@/components/Editor/ReactEditor'
 import { isJson } from '@/utils/json'
@@ -90,65 +90,69 @@ export default function TextMerger() {
     }
   }
 
-  const mergeData = (data: string, dataType: DataType): string => {
-    try {
-      const source = data.toString()
-      dataType = isJson(source) ? 'json' : isToml(source) ? 'toml' : 'text'
+  const mergeData = useCallback(
+    (data: string, dataType: DataType): string => {
+      try {
+        const source = data.toString()
+        dataType = isJson(source) ? 'json' : isToml(source) ? 'toml' : 'text'
 
-      const data1 = parseInputData(source)
-      const data2 = parseInputData(newContent.toString())
+        const data1 = parseInputData(source)
+        const data2 = parseInputData(newContent.toString())
 
-      if (!data1 && !data2) {
-        return ''
-      }
+        if (!data1 && !data2) {
+          return ''
+        }
 
-      if (!data1) {
-        return ''
-      }
+        if (!data1) {
+          return ''
+        }
 
-      if (!data2) {
-        return ''
-      }
+        if (!data2) {
+          return ''
+        }
 
-      // If source data is an object, find and merge the longest array
-      if (typeof data1 === 'object' && !Array.isArray(data1)) {
-        const longestArray = findLongestArray(data1)
-        if (longestArray && Array.isArray(data2)) {
-          // Check array content consistency
-          if (checkArrayContentConsistency(longestArray.array, data2)) {
-            const mergedArray = [...longestArray.array, ...data2]
-            const result = setValueByPath(data1, longestArray.path, mergedArray)
-            return renderData(result, dataType)
-          }
+        // If source data is an object, find and merge the longest array
+        if (typeof data1 === 'object' && !Array.isArray(data1)) {
+          const longestArray = findLongestArray(data1)
+          if (longestArray && Array.isArray(data2)) {
+            // Check array content consistency
+            if (checkArrayContentConsistency(longestArray.array, data2)) {
+              const mergedArray = [...longestArray.array, ...data2]
+              const result = setValueByPath(data1, longestArray.path, mergedArray)
+              return renderData(result, dataType)
+            }
 
-          // If content is inconsistent, try to find other compatible arrays
-          const compatibleArray = findCompatibleArray(data1, data2)
-          if (compatibleArray) {
-            const mergedArray = [...compatibleArray.array, ...data2]
-            const result = setValueByPath(data1, compatibleArray.path, mergedArray)
-            return renderData(result, dataType)
+            // If content is inconsistent, try to find other compatible arrays
+            const compatibleArray = findCompatibleArray(data1, data2)
+            if (compatibleArray) {
+              const mergedArray = [...compatibleArray.array, ...data2]
+              const result = setValueByPath(data1, compatibleArray.path, mergedArray)
+              return renderData(result, dataType)
+            }
           }
         }
-      }
 
-      // If source data is an array, merge directly
-      if (Array.isArray(data1) && Array.isArray(data2)) {
-        const merged = [...data1, ...data2]
+        // If source data is an array, merge directly
+        if (Array.isArray(data1) && Array.isArray(data2)) {
+          const merged = [...data1, ...data2]
+          return renderData(merged, dataType)
+        }
+
+        // Use default merge logic for other cases
+        const merged = deepMerge(data1, data2)
         return renderData(merged, dataType)
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to merge data:', error)
+        return ''
       }
-
-      // Use default merge logic for other cases
-      const merged = deepMerge(data1, data2)
-      return renderData(merged, dataType)
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Failed to merge data:', error)
-      return ''
-    }
-  }
+    },
+    [newContent]
+  )
 
   const mergedResults = useMemo(() => {
-    const codeBlocks = extractCodeBlocksFromMarkdown(sourceContent)
+    const content = sourceContent?.trim()
+    const codeBlocks = extractCodeBlocksFromMarkdown(content)
     if (codeBlocks?.length) {
       return codeBlocks.map((item) => {
         const dataType = item.type === 'json' ? 'json' : item.type === 'toml' ? 'toml' : 'text'
@@ -157,10 +161,10 @@ export default function TextMerger() {
       })
     }
 
-    const dataType = isJson(sourceContent) ? 'json' : isToml(sourceContent) ? 'toml' : 'text'
-    const data = mergeData(sourceContent, dataType)
+    const dataType = isJson(content) ? 'json' : isToml(content) ? 'toml' : 'text'
+    const data = mergeData(content, dataType)
     return [{ data, dataType }]
-  }, [sourceContent])
+  }, [sourceContent, mergeData])
 
   const finalActiveTabKey = useMemo(() => {
     if (mergedResults?.length === 1) {
