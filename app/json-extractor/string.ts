@@ -117,3 +117,46 @@ export function detectDominantQuote(text: string): '"' | "'" {
   // Return the quote type that appears more frequently
   return doubleQuotes >= singleQuotes ? '"' : "'"
 }
+
+/**
+ * Extracts JSON objects from a string that may contain surrounding text.
+ * Handles cases like "prefix {json} suffix" or multiple JSONs "prefix {jsonA} suffix {jsonB} prefix".
+ * @param text The input string.
+ * @returns An array of extracted JSON strings (formatted with 2 spaces).
+ */
+export function extractJsonWithSurroundingText(text: string): string[] {
+  const results: string[] = []
+  let balance = 0
+  let startIndex = -1
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i]
+
+    if (char === '{') {
+      if (balance === 0) {
+        startIndex = i
+      }
+      balance++
+    } else if (char === '}') {
+      balance--
+      if (balance === 0 && startIndex !== -1) {
+        const potentialJson = text.substring(startIndex, i + 1)
+        try {
+          const parsed = JSON.parse(potentialJson)
+          // Ensure it's an object or array before considering it a valid JSON
+          if (typeof parsed === 'object' && parsed !== null) {
+            results.push(JSON.stringify(parsed, null, 2))
+          }
+        } catch (e) {
+          // Not a valid JSON, ignore
+        }
+        startIndex = -1 // Reset for next potential JSON
+      }
+    } else if (balance < 0) {
+      // Reset if brackets are mismatched (e.g. "xxx } {json}")
+      balance = 0
+      startIndex = -1
+    }
+  }
+  return results
+}

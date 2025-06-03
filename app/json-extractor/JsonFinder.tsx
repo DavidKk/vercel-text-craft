@@ -5,7 +5,7 @@ import { useDebounce } from 'ahooks'
 import ReactEditor from '@/components/Editor/ReactEditor'
 import FormatTabs from '@/components/FormatTabs'
 import Tabs from '@/components/Tabs'
-import { detectDominantQuote, extractAllStrings } from './string'
+import { detectDominantQuote, extractAllStrings, extractJsonWithSurroundingText } from './string'
 import { MOCK_STRING } from './mock-data'
 import { formatText } from './utils'
 
@@ -29,12 +29,29 @@ export default function JsonFinder() {
       return []
     }
 
+    const results: string[] = []
+
+    // Try to parse the whole text as JSON first
+    try {
+      const parsedInput = JSON.parse(debouncedText)
+      if (typeof parsedInput === 'object' && parsedInput !== null) {
+        const formattedInput = JSON.stringify(parsedInput, null, 2)
+        results.push(formattedInput)
+      }
+    } catch {}
+
+    // Use the new function to extract JSONs that might have surrounding text
+    const jsonFromSurroundingText = extractJsonWithSurroundingText(debouncedText)
+    if (jsonFromSurroundingText.length > 0) {
+      results.push(...jsonFromSurroundingText)
+    }
+
     const quote = detectDominantQuote(debouncedText)
     const fixedText = [debouncedText, `${quote}${debouncedText}`, `${debouncedText}${quote}`]
 
     for (const text of fixedText) {
       const jsonStrings = extractAllStrings(text)
-      const formattedStrings: string[] = []
+      const formattedStringsFromExtraction: string[] = []
 
       for (const jsonString of jsonStrings) {
         try {
@@ -44,16 +61,19 @@ export default function JsonFinder() {
           }
 
           const formatted = JSON.stringify(parsed, null, 2)
-          formattedStrings.push(formatted)
+          // Avoid adding duplicates
+          if (!results.includes(formatted)) {
+            formattedStringsFromExtraction.push(formatted)
+          }
         } catch {}
       }
 
-      if (formattedStrings.length) {
-        return formattedStrings
+      if (formattedStringsFromExtraction.length) {
+        results.push(...formattedStringsFromExtraction)
       }
     }
-
-    return []
+    // Remove duplicates before returning
+    return [...new Set(results)]
   }
 
   useEffect(() => {

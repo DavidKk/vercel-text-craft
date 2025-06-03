@@ -3,7 +3,6 @@
  */
 function extractStringsFromObject(obj: any): string[] {
   const strings: string[] = []
-
   if (typeof obj === 'string') {
     strings.push(obj)
     return strings
