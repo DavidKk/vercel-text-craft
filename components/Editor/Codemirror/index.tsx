@@ -7,10 +7,13 @@ import { EditorView, Decoration, keymap } from '@codemirror/view'
 import { indentWithTab } from '@codemirror/commands'
 import type { Range } from '@codemirror/state'
 import type { DecorationSet } from '@codemirror/view'
+import { json } from '@codemirror/lang-json'
+import { yaml } from '@codemirror/lang-yaml'
 import useStorage from './hooks/useStorage'
 import useDrop from './hooks/useDrop'
 import Container from './Container'
 import { setEditorValue } from './utils'
+import { foldGutterCustom } from './foldGutterCustom'
 
 export interface CodemirrorProps {
   value?: string
@@ -28,10 +31,12 @@ export interface CodemirrorProps {
   hiddenLines?: number[]
   /** Whether to disable styling */
   noStyle?: boolean
+  /** type of highlight content */
+  format?: 'json' | 'yaml' | 'toml' | 'properties'
 }
 
 export default function Codemirror(props: CodemirrorProps) {
-  const { value, onChange, onBlur, disabled, highlightLines, hiddenLines, storageKey, noStyle } = props
+  const { value, onChange, onBlur, disabled, highlightLines, hiddenLines, storageKey, noStyle, format } = props
   const containerRef = useRef<HTMLDivElement>(null)
   const editorRef = useRef<EditorView | null>(null)
   const highlightLinesRef = useRef<Record<string, number[]>>({})
@@ -74,28 +79,35 @@ export default function Codemirror(props: CodemirrorProps) {
       provide: (f) => EditorView.decorations.from(f),
     })
 
+    const startStateExtensions = [
+      basicSetup,
+      decorationField,
+      ...extensions,
+      keymap.of([indentWithTab]),
+      EditorView.editable.of(!disabled),
+      EditorView.updateListener.of((update) => {
+        if (update.focusChanged && !update.view.hasFocus) {
+          const value = update.state.doc.toString()
+          onBlur?.(value)
+          return
+        }
+
+        if (update.docChanged) {
+          const newValue = update.state.doc.toString()
+          onChange?.(newValue)
+          return
+        }
+      }),
+    ]
+
+    const language = format === 'json' ? json() : format === 'yaml' ? yaml() : undefined
+    if (language) {
+      startStateExtensions.push(language)
+    }
+
     const startState = EditorState.create({
       doc: value || '',
-      extensions: [
-        basicSetup,
-        decorationField,
-        ...extensions,
-        keymap.of([indentWithTab]),
-        EditorView.editable.of(!disabled),
-        EditorView.updateListener.of((update) => {
-          if (update.focusChanged && !update.view.hasFocus) {
-            const value = update.state.doc.toString()
-            onBlur?.(value)
-            return
-          }
-
-          if (update.docChanged) {
-            const newValue = update.state.doc.toString()
-            onChange?.(newValue)
-            return
-          }
-        }),
-      ],
+      extensions: [...startStateExtensions, foldGutterCustom],
     })
 
     const view = new EditorView({
@@ -112,7 +124,7 @@ export default function Codemirror(props: CodemirrorProps) {
     return () => {
       view.destroy()
     }
-  }, [extensions])
+  }, [extensions, format])
 
   useEffect(() => {
     const editor = editorRef.current

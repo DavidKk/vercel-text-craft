@@ -25,6 +25,9 @@
   },
   "dependencies": {
     "@codemirror/commands": "^6.8.0",
+    "@codemirror/lang-json": "^6.0.1",
+    "@codemirror/lang-yaml": "^6.1.2",
+    "@codemirror/language": "^6.11.1",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.36.4",
     "@iarna/toml": "^2.2.5",
@@ -33,6 +36,7 @@
     "acorn": "^8.14.0",
     "ahooks": "^3.8.4",
     "codemirror": "^6.0.1",
+    "dot-properties": "^1.1.0",
     "feather-icons-react": "^0.7.1",
     "js-yaml": "^4.1.0",
     "jsonwebtoken": "^9.0.2",

@@ -5,6 +5,7 @@ import toml from '@iarna/toml'
 import FeatherIcon from 'feather-icons-react'
 import { isJson } from '@/utils/json'
 import { isToml } from '@/utils/toml'
+import { isProperties } from '@/utils/properties'
 import Codemirror, { type CodemirrorProps } from './Codemirror'
 import type { TextSegment } from './types'
 
@@ -21,7 +22,7 @@ export interface ReactEditorProps extends CodemirrorProps {
   segments?: TextSegment[]
 }
 
-type FormatType = 'TEXT' | 'JSON' | 'TOML'
+type FormatType = 'TEXT' | 'JSON' | 'TOML' | 'PROPERTIES'
 
 const formatText = (value: string, dataType: FormatType) => {
   if (!value) {
@@ -35,6 +36,12 @@ const formatText = (value: string, dataType: FormatType) => {
     case 'TOML':
       const tomlData = toml.parse(value)
       return toml.stringify(tomlData)
+    case 'PROPERTIES':
+      const propertiesData = value.split('\n').map((line) => {
+        const [key, value] = line.split('=')
+        return `${key.trim()}=${value.trim()}`
+      })
+      return propertiesData.join('\n')
     default:
       return value
   }
@@ -53,16 +60,20 @@ function getDataType(value?: string) {
     return 'TOML'
   }
 
+  if (isProperties(value)) {
+    return 'PROPERTIES'
+  }
+
   return 'TEXT'
 }
 
 export default function ReactEditor(props: ReactEditorProps) {
-  const { className = '', title, value, onChange, onBlur, enablePrettier = true, autoPrettier = false, segments, storageKey, disabled, hiddenLines } = props
+  const { className = '', title, value, onChange, onBlur, enablePrettier = true, autoPrettier = false, segments, storageKey, disabled, hiddenLines, format } = props
 
   const rawUid = useId()
   const uid = useMemo(() => `${rawUid.replace(/[^a-zA-Z0-9]/g, '')}`, [rawUid])
   const dataType = useMemo(() => getDataType(value), [value])
-  const canPrettier = useMemo(() => ['JSON', 'TOML'].includes(dataType), [enablePrettier, dataType])
+  const canPrettier = useMemo(() => ['JSON', 'TOML'].includes(dataType), [enablePrettier, dataType]) // Properties formatting not added yet
 
   const handleChange = useCallback(
     (value: string) => {
@@ -82,7 +93,7 @@ export default function ReactEditor(props: ReactEditorProps) {
       return
     }
 
-    if (!value) {
+    if (!(typeof value === 'string' && value.length > 0)) {
       return
     }
 
@@ -141,7 +152,16 @@ export default function ReactEditor(props: ReactEditorProps) {
           <span className="select-none p-1 bg-indigo-100 opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:bg-indigo-200 rounded-sm transition-all">{dataType}</span>
         </div>
 
-        <Codemirror value={value} onChange={handleChange} onBlur={onBlur} storageKey={storageKey} disabled={disabled} highlightLines={highlightLines} hiddenLines={hiddenLines} />
+        <Codemirror
+          value={value}
+          onChange={handleChange}
+          onBlur={onBlur}
+          storageKey={storageKey}
+          disabled={disabled}
+          highlightLines={highlightLines}
+          hiddenLines={hiddenLines}
+          format={format}
+        />
       </div>
     </div>
   )

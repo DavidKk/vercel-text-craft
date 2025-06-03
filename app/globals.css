@@ -18,3 +18,25 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.cm-gutter.cm-foldGutter {
+  display: none !important;
+}
+
+.cm-gutter.cm-foldGutter:last-child {
+  display: flex !important;
+}
+
+.cm-gutter.cm-foldGutter .cm-gutterElement {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cusomize-marker {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-inline: 4px;
+  color: var(--cusomize-marker-color, #999);
+}
