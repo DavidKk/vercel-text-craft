@@ -1,8 +1,8 @@
+import * as TOML from '@iarna/toml'
+import * as YAML from 'js-yaml'
 import { isJson } from './json'
 import { isToml } from './toml'
 import { isProperties, parsePropertiesText, propertiesToNestedJSON } from './properties'
-import * as TOML from '@iarna/toml'
-import * as YAML from 'js-yaml'
 
 export type ParsedData = {
   type: 'json' | 'toml' | 'properties' | 'yaml' | 'unknown'
@@ -17,7 +17,8 @@ export function parseText(text: string): ParsedData {
   // Try JSON
   try {
     if (isJson(text)) {
-      return { type: 'json', data: JSON.parse(text) }
+      const data = JSON.parse(text)
+      return { type: 'json', data }
     }
   } catch (error) {
     // Continue to next parser if JSON parsing fails
@@ -26,7 +27,8 @@ export function parseText(text: string): ParsedData {
   // Try TOML
   try {
     if (isToml(text)) {
-      return { type: 'toml', data: TOML.parse(text) }
+      const data = TOML.parse(text)
+      return { type: 'toml', data }
     }
   } catch (error) {
     // Continue to next parser if TOML parsing fails
