@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import * as TOML from '@iarna/toml'
-import * as YAML from 'js-yaml'
 import ReactEditor from '@/components/Editor/ReactEditor'
 import Tabs from '@/components/Tabs'
 import { isJson } from '@/utils/json'
