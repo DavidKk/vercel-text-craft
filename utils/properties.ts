@@ -3,22 +3,43 @@ import { Pair, parseLines } from 'dot-properties'
 export function isProperties(content: string): boolean {
   const lines = content.split(/\r?\n/)
 
-  let hasValidEntry = false
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim()
+  let validPropertyLines = 0
+  let yamlLikeLines = 0
+
+  for (let rawLine of lines) {
+    const line = rawLine.trim()
     if (!line || line.startsWith('#') || line.startsWith('!')) {
       continue
     }
 
-    const match = line.match(/^([^:=\s]+)\s*[:=\s]\s*(.*)$/)
-    if (!match) {
-      return false
+    // Check for YAML array syntax or indentation
+    if (/^\s*-\s/.test(rawLine)) {
+      yamlLikeLines++
+      continue
     }
 
-    hasValidEntry = true
+    // YAML nested or block structure
+    if (/^\s{2,}/.test(rawLine)) {
+      yamlLikeLines++
+      continue
+    }
+
+    // YAML-like: key: value (colon followed by space)
+    if (/^[^=\s]+:\s+.+$/.test(line)) {
+      yamlLikeLines++
+      continue
+    }
+
+    // Valid properties: key=value or key:xxx (no space after colon)
+    if (/^[^=\s]+\s*=\s*.*$/.test(line) || /^[^=\s]+:\S.*$/.test(line) || /^[^=\s]+:$/ .test(line) || /^[^=\s]+=$/ .test(line)) {
+      validPropertyLines++
+      continue
+    }
   }
 
-  return hasValidEntry
+  // Heuristics: must have at least one valid properties line,
+  // and must not be dominated by YAML-like lines
+  return validPropertyLines > 0 && yamlLikeLines === 0
 }
 
 export function jsonToProperties(obj: any, prefix = '', result: Record<string, string> = {}) {

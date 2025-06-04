@@ -3,14 +3,16 @@
 import { useCallback, useMemo, useState } from 'react'
 import * as TOML from '@iarna/toml'
 import ReactEditor from '@/components/Editor/ReactEditor'
+import Tabs from '@/components/Tabs'
 import { isJson } from '@/utils/json'
 import { isToml } from '@/utils/toml'
+import { isYaml } from '@/utils/yaml'
 import { checkArrayContentConsistency, checkObjectStructure, findCompatibleArray, checkArrayTypeConsistency, findLongestArray, setValueByPath } from '@/utils/array'
 import { extractCodeBlocksFromMarkdown } from '@/utils/markdown'
-import Tabs from '@/components/Tabs'
+import { parseText } from '@/utils/parser'
 import { MOCK_JSON_LIST, MOCK_JSON_APPEND_LIST, MOCK_TOML_LIST, MOCK_MARKDOWN_LIST } from './mock-data'
 
-type DataType = 'json' | 'toml' | 'text'
+type DataType = 'json' | 'toml' | 'yaml' | 'text'
 
 export default function TextMerger() {
   const [sourceContent, setSourceContent] = useState('')
@@ -94,10 +96,10 @@ export default function TextMerger() {
     (data: string, dataType: DataType): string => {
       try {
         const source = data.toString()
-        dataType = isJson(source) ? 'json' : isToml(source) ? 'toml' : 'text'
+        dataType = isJson(source) ? 'json' : isToml(source) ? 'toml' : isYaml(source) ? 'yaml' : 'text'
 
-        const data1 = parseInputData(source)
-        const data2 = parseInputData(newContent.toString())
+        const data1 = parseText(source)
+        const data2 = parseText(newContent.toString())
 
         if (!data1 && !data2) {
           return ''
@@ -155,13 +157,13 @@ export default function TextMerger() {
     const codeBlocks = extractCodeBlocksFromMarkdown(content)
     if (codeBlocks?.length) {
       return codeBlocks.map((item) => {
-        const dataType = item.type === 'json' ? 'json' : item.type === 'toml' ? 'toml' : 'text'
+        const dataType = item.type === 'json' ? 'json' : item.type === 'toml' ? 'toml' : item.type === 'yaml' ? 'yaml' : 'text'
         const data = mergeData(item.content, dataType)
         return { data, dataType }
       })
     }
 
-    const dataType = isJson(content) ? 'json' : isToml(content) ? 'toml' : 'text'
+    const dataType = isJson(content) ? 'json' : isToml(content) ? 'toml' : isYaml(content) ? 'yaml' : 'text'
     const data = mergeData(content, dataType)
     return [{ data, dataType }]
   }, [sourceContent, mergeData])
@@ -244,18 +246,4 @@ export default function TextMerger() {
       </div>
     </div>
   )
-}
-
-const parseInputData = (input: string) => {
-  if (!input) {
-    return undefined
-  }
-
-  if (isJson(input)) {
-    return JSON.parse(input)
-  } else if (isToml(input)) {
-    return TOML.parse(input)
-  } else {
-    return input.split('\n').filter(Boolean)
-  }
 }

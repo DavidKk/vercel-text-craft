@@ -1,8 +1,9 @@
 import { isJson } from '@/utils/json'
 import { isToml } from '@/utils/toml'
+import { isYaml } from './yaml'
 
 interface CodeBlock {
-  type: 'json' | 'toml' | 'unknown'
+  type: 'json' | 'toml' | 'yaml' | 'unknown'
   content: string
   language?: string
 }
@@ -22,6 +23,8 @@ export function extractCodeBlocksFromMarkdown(markdown: string): CodeBlock[] {
       type = 'json'
     } else if (language === 'toml' && isToml(trimmedContent)) {
       type = 'toml'
+    } else if (language === 'yaml' && isYaml(trimmedContent)) {
+      type = 'yaml'
     }
 
     blocks.push({

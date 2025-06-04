@@ -8,6 +8,7 @@ import { isToml } from '@/utils/toml'
 import { isProperties } from '@/utils/properties'
 import Codemirror, { type CodemirrorProps } from './Codemirror'
 import type { TextSegment } from './types'
+import { isYaml } from '@/utils/yaml'
 
 export type { TextSegment } from './types'
 
@@ -22,7 +23,7 @@ export interface ReactEditorProps extends CodemirrorProps {
   segments?: TextSegment[]
 }
 
-type FormatType = 'TEXT' | 'JSON' | 'TOML' | 'PROPERTIES'
+type FormatType = 'TEXT' | 'JSON' | 'TOML' | 'PROPERTIES' | 'YAML'
 
 const formatText = (value: string, dataType: FormatType) => {
   if (!value) {
@@ -62,6 +63,10 @@ function getDataType(value?: string) {
 
   if (isProperties(value)) {
     return 'PROPERTIES'
+  }
+
+  if (isYaml(value)) {
+    return 'YAML'
   }
 
   return 'TEXT'
