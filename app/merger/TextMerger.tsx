@@ -96,10 +96,12 @@ export default function TextMerger() {
     (data: string, dataType: DataType): string => {
       try {
         const source = data.toString()
-        dataType = isJson(source) ? 'json' : isToml(source) ? 'toml' : isYaml(source) ? 'yaml' : 'text'
+        dataType = isJson(source) ? 'json' : isToml(source) ? 'toml' : 'text'
 
         const data1 = parseInputData(source)
         const data2 = parseInputData(newContent.toString())
+        console.log({ data1, data2 })
+
         if (!data1 && !data2) {
           return ''
         }
@@ -134,8 +136,13 @@ export default function TextMerger() {
         }
 
         // If source data is an array, merge directly
-        if (Array.isArray(data1) && Array.isArray(data2)) {
-          const merged = [...data1, ...data2]
+        if (Array.isArray(data1)) {
+          if (Array.isArray(data2)) {
+            const merged = [...data1, ...data2]
+            return renderData(merged, dataType)
+          }
+
+          const merged = [...data1, data2]
           return renderData(merged, dataType)
         }
 
@@ -260,5 +267,20 @@ const parseInputData = (input: string) => {
     return TOML.parse(input)
   }
 
-  return input.split('\n').filter(Boolean)
+  const lines = input.split('\n')
+  return Array.from(
+    (function* () {
+      for (const line of lines) {
+        if (line.trim() === '') {
+          continue
+        }
+
+        try {
+          yield JSON.parse(line)
+        } catch (e) {
+          yield line
+        }
+      }
+    })()
+  )
 }
