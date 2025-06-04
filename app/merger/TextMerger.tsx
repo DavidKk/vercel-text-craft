@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import * as TOML from '@iarna/toml'
+import * as YAML from 'js-yaml'
 import ReactEditor from '@/components/Editor/ReactEditor'
 import Tabs from '@/components/Tabs'
 import { isJson } from '@/utils/json'
@@ -98,9 +99,8 @@ export default function TextMerger() {
         const source = data.toString()
         dataType = isJson(source) ? 'json' : isToml(source) ? 'toml' : isYaml(source) ? 'yaml' : 'text'
 
-        const data1 = parseText(source)
-        const data2 = parseText(newContent.toString())
-
+        const data1 = parseInputData(source)
+        const data2 = parseInputData(newContent.toString())
         if (!data1 && !data2) {
           return ''
         }
@@ -246,4 +246,20 @@ export default function TextMerger() {
       </div>
     </div>
   )
+}
+
+const parseInputData = (input: string) => {
+  if (!input) {
+    return undefined
+  }
+
+  if (isJson(input)) {
+    return JSON.parse(input)
+  }
+
+  if (isToml(input)) {
+    return TOML.parse(input)
+  }
+
+  return input.split('\n').filter(Boolean)
 }
