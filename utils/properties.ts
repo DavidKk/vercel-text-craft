@@ -31,7 +31,7 @@ export function isProperties(content: string): boolean {
     }
 
     // Valid properties: key=value or key:xxx (no space after colon)
-    if (/^[^=\s]+\s*=\s*.*$/.test(line) || /^[^=\s]+:\S.*$/.test(line) || /^[^=\s]+:$/ .test(line) || /^[^=\s]+=$/ .test(line)) {
+    if (/^[^=\s]+\s*=\s*.*$/.test(line) || /^[^=\s]+:\S.*$/.test(line) || /^[^=\s]+:$/.test(line) || /^[^=\s]+=$/.test(line)) {
       validPropertyLines++
       continue
     }

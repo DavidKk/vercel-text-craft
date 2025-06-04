@@ -21,7 +21,7 @@ export default function JsonFinder() {
   const debouncedText = useDebounce(sourceText, { wait: 300 })
 
   const handleMockData = () => {
-    setSourceText(`[INFO] ${MOCK_STRING}`)
+    setSourceText(`${new Date().toISOString()} [INFO] ${MOCK_STRING}`)
   }
 
   const extractJson = () => {
