@@ -1,14 +1,14 @@
 'use client'
 
-import React, { useMemo, useId, useCallback } from 'react'
+import React, { useMemo, useId, useRef, useState } from 'react'
 import toml from '@iarna/toml'
 import FeatherIcon from 'feather-icons-react'
 import { isJson } from '@/utils/json'
 import { isToml } from '@/utils/toml'
 import { isProperties } from '@/utils/properties'
+import { isYaml } from '@/utils/yaml'
 import Codemirror, { type CodemirrorProps } from './Codemirror'
 import type { TextSegment } from './types'
-import { isYaml } from '@/utils/yaml'
 
 export type { TextSegment } from './types'
 
@@ -48,6 +48,19 @@ const formatText = (value: string, dataType: FormatType) => {
   }
 }
 
+const compressText = (value: string, dataType: FormatType) => {
+  if (!value || dataType !== 'JSON') {
+    return value
+  }
+
+  try {
+    const data = JSON.parse(value)
+    return JSON.stringify(data)
+  } catch {
+    return value
+  }
+}
+
 function getDataType(value?: string) {
   if (!value) {
     return 'TEXT'
@@ -79,32 +92,54 @@ export default function ReactEditor(props: ReactEditorProps) {
   const uid = useMemo(() => `${rawUid.replace(/[^a-zA-Z0-9]/g, '')}`, [rawUid])
   const dataType = useMemo(() => getDataType(value), [value])
   const canPrettier = useMemo(() => ['JSON', 'TOML'].includes(dataType), [enablePrettier, dataType]) // Properties formatting not added yet
+  const canCompress = useMemo(() => dataType === 'JSON', [dataType])
+  // Only when onChange is not passed
+  const [formatType, setFormatType] = useState<'prettier' | 'compress' | 'undo'>('undo')
 
-  const handleChange = useCallback(
-    (value: string) => {
-      if (typeof onChange !== 'function') {
-        return
-      }
+  const prettierValue = (value: string | undefined, dataType: FormatType) => {
+    if (!(typeof value === 'string' && value.length > 0)) {
+      return value
+    }
 
-      const dataType = getDataType(value)
-      const formattedText = autoPrettier && value ? formatText(value, dataType) : value
-      onChange(formattedText)
-    },
-    [onChange]
-  )
+    return formatText(value, dataType)
+  }
 
-  const handleFormatText = useCallback(() => {
+  const compressValue = (value: string | undefined, dataType: FormatType) => {
+    if (!(typeof value === 'string' && value.length > 0)) {
+      return value
+    }
+
+    return compressText(value, dataType)
+  }
+
+  const handleChange = (value: string) => {
     if (typeof onChange !== 'function') {
       return
     }
 
-    if (!(typeof value === 'string' && value.length > 0)) {
+    const dataType = getDataType(value)
+    const formattedText = autoPrettier && value ? formatText(value, dataType) : value
+    onChange(formattedText)
+  }
+
+  const handlePrettierText = () => {
+    if (typeof onChange !== 'function') {
+      setFormatType('prettier')
       return
     }
 
-    const formattedText = formatText(value, dataType)
+    const formattedText = prettierValue(value, dataType)
     formattedText && onChange(formattedText)
-  }, [value, dataType, onChange])
+  }
+
+  const handleCompressText = () => {
+    if (typeof onChange !== 'function') {
+      setFormatType('compress')
+      return
+    }
+
+    return compressValue(value, dataType)
+  }
 
   const copyVisibleContent = () => {
     navigator.clipboard.writeText(value || '')
@@ -130,6 +165,21 @@ export default function ReactEditor(props: ReactEditorProps) {
     return lines
   }, [segments])
 
+  const finalValue = useMemo(() => {
+    switch (formatType) {
+      case 'prettier':
+        if (canPrettier) {
+          return prettierValue(value, dataType)
+        }
+      case 'compress':
+        if (canCompress) {
+          return compressValue(value, dataType)
+        }
+      default:
+        return value
+    }
+  }, [formatType, value, dataType])
+
   return (
     <div className={`${className} h-full flex flex-col gap-1`}>
       {title ? <h2 className="text-xs bg-indigo-100 py-1 px-2 rounded-md font-bold">{title}</h2> : null}
@@ -146,19 +196,27 @@ export default function ReactEditor(props: ReactEditorProps) {
         </div>
 
         <div className="flex gap-2 absolute z-10 right-5 bottom-5 text-xs font-extrabold text-indigo-600 uppercase">
-          {!(enablePrettier && canPrettier) ? null : (
+          {enablePrettier && canPrettier && (
             <span
               className="cursor-pointer select-none p-1 bg-indigo-100 opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:bg-indigo-200 rounded-sm transition-all"
-              onClick={handleFormatText}
+              onClick={handlePrettierText}
             >
-              Pritter
+              Prettier
+            </span>
+          )}
+          {canCompress && (
+            <span
+              className="cursor-pointer select-none p-1 bg-indigo-100 opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:bg-indigo-200 rounded-sm transition-all"
+              onClick={handleCompressText}
+            >
+              Compress
             </span>
           )}
           <span className="select-none p-1 bg-indigo-100 opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:bg-indigo-200 rounded-sm transition-all">{dataType}</span>
         </div>
 
         <Codemirror
-          value={value}
+          value={finalValue}
           onChange={handleChange}
           onBlur={onBlur}
           storageKey={storageKey}

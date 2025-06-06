@@ -9,7 +9,6 @@ import { isToml } from '@/utils/toml'
 import { isYaml } from '@/utils/yaml'
 import { checkArrayContentConsistency, checkObjectStructure, findCompatibleArray, checkArrayTypeConsistency, findLongestArray, setValueByPath } from '@/utils/array'
 import { extractCodeBlocksFromMarkdown } from '@/utils/markdown'
-import { parseText } from '@/utils/parser'
 import { MOCK_JSON_LIST, MOCK_JSON_APPEND_LIST, MOCK_TOML_LIST, MOCK_MARKDOWN_LIST } from './mock-data'
 
 type DataType = 'json' | 'toml' | 'yaml' | 'text'
@@ -100,8 +99,6 @@ export default function TextMerger() {
 
         const data1 = parseInputData(source)
         const data2 = parseInputData(newContent.toString())
-        console.log({ data1, data2 })
-
         if (!data1 && !data2) {
           return ''
         }
