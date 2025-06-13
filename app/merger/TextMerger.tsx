@@ -7,7 +7,16 @@ import Tabs from '@/components/Tabs'
 import { isJson } from '@/utils/json'
 import { isToml } from '@/utils/toml'
 import { isYaml } from '@/utils/yaml'
-import { checkArrayContentConsistency, checkObjectStructure, findCompatibleArray, checkArrayTypeConsistency, findLongestArray, setValueByPath } from '@/utils/array'
+import {
+  checkArrayContentConsistency,
+  checkObjectStructure,
+  findCompatibleArray,
+  checkArrayTypeConsistency,
+  findLongestArray,
+  setValueByPath,
+  checkArrayPrimitiveTypes,
+  transformToArrayType,
+} from '@/utils/array'
 import { extractCodeBlocksFromMarkdown } from '@/utils/markdown'
 import { MOCK_JSON_LIST, MOCK_JSON_APPEND_LIST, MOCK_TOML_LIST, MOCK_MARKDOWN_LIST } from './mock-data'
 
@@ -114,33 +123,91 @@ export default function TextMerger() {
         // If source data is an object, find and merge the longest array
         if (typeof data1 === 'object' && !Array.isArray(data1)) {
           const longestArray = findLongestArray(data1)
-          if (longestArray && Array.isArray(data2)) {
-            // Check array content consistency
-            if (checkArrayContentConsistency(longestArray.array, data2)) {
-              const mergedArray = [...longestArray.array, ...data2]
-              const result = setValueByPath(data1, longestArray.path, mergedArray)
-              return renderData(result, dataType)
+          if (longestArray) {
+            // Helper function to merge arrays with consistency check
+            const mergeArraysWithCheck = (sourceArray: any[], targetArray: any[], shouldTransform = false) => {
+              const arrayToMerge = shouldTransform ? transformToArrayType(sourceArray, targetArray) : targetArray
+              if (shouldTransform || checkArrayContentConsistency(sourceArray, arrayToMerge)) {
+                const mergedArray = [...sourceArray, ...arrayToMerge]
+                return setValueByPath(data1, longestArray.path, mergedArray)
+              }
+
+              return null
             }
 
-            // If content is inconsistent, try to find other compatible arrays
-            const compatibleArray = findCompatibleArray(data1, data2)
-            if (compatibleArray) {
-              const mergedArray = [...compatibleArray.array, ...data2]
-              const result = setValueByPath(data1, compatibleArray.path, mergedArray)
-              return renderData(result, dataType)
+            if (Array.isArray(data2)) {
+              // Try direct merge first
+              const directMergeResult = mergeArraysWithCheck(longestArray.array, data2)
+              if (directMergeResult) {
+                return renderData(directMergeResult, dataType)
+              }
+
+              // Try merge with type transformation
+              if (checkArrayPrimitiveTypes(longestArray.array, data2)) {
+                const transformedMergeResult = mergeArraysWithCheck(longestArray.array, data2, true)
+                if (transformedMergeResult) {
+                  return renderData(transformedMergeResult, dataType)
+                }
+              }
+
+              // If content is inconsistent, try to find other compatible arrays
+              const compatibleArray = findCompatibleArray(data1, data2)
+              if (compatibleArray) {
+                const compatibleMergeResult = mergeArraysWithCheck(compatibleArray.array, data2)
+                if (compatibleMergeResult) {
+                  return renderData(compatibleMergeResult, dataType)
+                }
+              }
+            } else {
+              // Handle case where data2 is not an array
+              if (checkArrayPrimitiveTypes(longestArray.array, [data2])) {
+                const transformedData = transformToArrayType(longestArray.array, [data2])
+                const mergedArray = [...longestArray.array, ...transformedData]
+                const result = setValueByPath(data1, longestArray.path, mergedArray)
+                return renderData(result, dataType)
+              }
             }
           }
         }
 
-        // If source data is an array, merge directly
+        // If source data is an array, merge with type checking
         if (Array.isArray(data1)) {
           if (Array.isArray(data2)) {
-            const merged = [...data1, ...data2]
-            return renderData(merged, dataType)
+            // Helper function to merge arrays with consistency check
+            const mergeArraysWithCheck = (sourceArray: any[], targetArray: any[], shouldTransform = false) => {
+              const arrayToMerge = shouldTransform ? transformToArrayType(sourceArray, targetArray) : targetArray
+              if (shouldTransform || checkArrayContentConsistency(sourceArray, arrayToMerge)) {
+                return [...sourceArray, ...arrayToMerge]
+              }
+
+              return null
+            }
+
+            // Try direct merge first
+            const directMergeResult = mergeArraysWithCheck(data1, data2)
+            if (directMergeResult) {
+              return renderData(directMergeResult, dataType)
+            }
+
+            // Try merge with type transformation
+            if (checkArrayPrimitiveTypes(data1, data2)) {
+              const transformedMergeResult = mergeArraysWithCheck(data1, data2, true)
+              if (transformedMergeResult) {
+                return renderData(transformedMergeResult, dataType)
+              }
+            }
+
+            // If both checks fail, return original data
+            return renderData(data1, dataType)
           }
 
-          const merged = [...data1, data2]
-          return renderData(merged, dataType)
+          // If data2 is not an array, try to convert it to match data1's type
+          if (checkArrayPrimitiveTypes(data1, [data2])) {
+            const transformedData = transformToArrayType(data1, [data2])
+            return renderData([...data1, ...transformedData], dataType)
+          }
+
+          return renderData([...data1, data2], dataType)
         }
 
         // Use default merge logic for other cases
