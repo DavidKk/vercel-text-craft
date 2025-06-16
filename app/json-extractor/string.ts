@@ -17,6 +17,7 @@ export interface ExtractStringOptions {
 export function extractAllStrings(text: string, options: ExtractStringOptions = {}): string[] {
   const { keepQuotes = false, unescape = true } = options
   const strings: string[] = []
+
   let inString = false
   let currentQuote = ''
   let escapeNext = false

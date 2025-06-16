@@ -5,8 +5,9 @@ import { useDebounce } from 'ahooks'
 import ReactEditor from '@/components/Editor/ReactEditor'
 import FormatTabs from '@/components/FormatTabs'
 import Tabs from '@/components/Tabs'
+import Dropdown from '@/components/Dropdown'
 import { detectDominantQuote, extractAllStrings, extractJsonWithSurroundingText } from './string'
-import { MOCK_STRING } from './mock-data'
+import { MOCK_EXAMPLES } from './mock-data'
 import { formatText } from './utils'
 
 type FormatType = 'json' | 'toml' | 'yaml'
@@ -20,8 +21,8 @@ export default function JsonFinder() {
   const [activeTabKey, setActiveTabKey] = useState(0)
   const debouncedText = useDebounce(sourceText, { wait: 300 })
 
-  const handleMockData = () => {
-    setSourceText(`${new Date().toISOString()} [INFO] ${MOCK_STRING}`)
+  const handleMockData = (example: string) => {
+    setSourceText(example)
   }
 
   const extractJson = () => {
@@ -72,6 +73,7 @@ export default function JsonFinder() {
         results.push(...formattedStringsFromExtraction)
       }
     }
+
     // Remove duplicates before returning
     return [...new Set(results)]
   }
@@ -85,13 +87,15 @@ export default function JsonFinder() {
     setFormattedTexts(formattedStrings)
   }, [debouncedText])
 
+  const dropdownItems = Object.entries(MOCK_EXAMPLES).map(([name, example]) => ({
+    key: example,
+    label: name,
+  }))
+
   return (
     <div className="w-full flex flex-col gap-2">
-      <div className="flex justify-end gap-2">
-        <button className="px-3 py-1 whitespace-nowrap text-xs rounded-md border border-indigo-500 text-indigo-500 hover:bg-indigo-50" onClick={handleMockData}>
-          Try JSON
-        </button>
-
+      <div className="flex items-center justify-end gap-2">
+        <Dropdown items={dropdownItems} onSelect={handleMockData} buttonLabel="Try Example" />
         <FormatTabs value={targetFormat} onChange={setTargetFormat} types={FINDER_FORMAT_TYPES} />
       </div>
 
