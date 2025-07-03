@@ -145,6 +145,38 @@ export default function ReactEditor(props: ReactEditorProps) {
     navigator.clipboard.writeText(value || '')
   }
 
+  const handleDownloadContent = () => {
+    if (!value) return
+    let ext = 'txt'
+    switch (dataType) {
+      case 'JSON':
+        ext = 'json'
+        break
+      case 'TOML':
+        ext = 'toml'
+        break
+      case 'PROPERTIES':
+        ext = 'properties'
+        break
+      case 'YAML':
+        ext = 'yaml'
+        break
+      default:
+        ext = 'txt'
+    }
+    const blob = new Blob([value], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `download.${ext}`
+    document.body.appendChild(a)
+    a.click()
+    setTimeout(() => {
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    }, 0)
+  }
+
   const highlightLines = useMemo(() => {
     if (!(Array.isArray(segments) && segments.length)) {
       return
@@ -192,6 +224,13 @@ export default function ReactEditor(props: ReactEditorProps) {
             title="copy full text"
           >
             <FeatherIcon icon="copy" className="h-4 w-4 text-indigo-900" />
+          </button>
+          <button
+            className="ml-2 p-1 bg-indigo-100 opacity-0 group-hover:opacity-50 hover:!opacity-100 hover:bg-indigo-200 rounded-sm transition-all"
+            onClick={handleDownloadContent}
+            title={`download as ${dataType.toLowerCase()}`}
+          >
+            <FeatherIcon icon="download" className="h-4 w-4 text-indigo-900" />
           </button>
         </div>
 
