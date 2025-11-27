@@ -1,5 +1,5 @@
 import { useClickAway } from 'ahooks'
-import { useState, useRef } from 'react'
+import { useRef, useState } from 'react'
 
 export interface DropdownItem {
   key: string

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
+
 import ReactEditor, { type TextSegment } from '@/components/Editor/ReactEditor'
 import { isJson } from '@/utils/json'
 

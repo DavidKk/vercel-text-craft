@@ -1,8 +1,9 @@
 import * as TOML from '@iarna/toml'
 import * as YAML from 'js-yaml'
+
 import { isJson } from './json'
-import { isToml } from './toml'
 import { isProperties, parsePropertiesText, propertiesToNestedJSON } from './properties'
+import { isToml } from './toml'
 
 export type ParsedData = {
   type: 'json' | 'toml' | 'properties' | 'yaml' | 'unknown'

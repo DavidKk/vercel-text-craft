@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
 import { useDebounce } from 'ahooks'
-import ReactEditor from '@/components/Editor/ReactEditor'
+import { useEffect, useRef, useState } from 'react'
+
 import type { ReactEditorProps, TextSegment } from '@/components/Editor/ReactEditor'
+import ReactEditor from '@/components/Editor/ReactEditor'
+
 import { calculateMaxSimilarity } from '../share/similarity'
 import { processInputText } from '../share/text-process'
 

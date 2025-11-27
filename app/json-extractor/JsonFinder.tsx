@@ -1,13 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useDebounce } from 'ahooks'
+import { useEffect, useState } from 'react'
+
+import Dropdown from '@/components/Dropdown'
 import ReactEditor from '@/components/Editor/ReactEditor'
 import FormatTabs from '@/components/FormatTabs'
 import Tabs from '@/components/Tabs'
-import Dropdown from '@/components/Dropdown'
-import { detectDominantQuote, extractAllStrings, extractJsonWithSurroundingText } from './string'
+
 import { MOCK_EXAMPLES } from './mock-data'
+import { detectDominantQuote, extractAllStrings, extractJsonWithSurroundingText } from './string'
 import { formatText } from './utils'
 
 type FormatType = 'json' | 'toml' | 'yaml'

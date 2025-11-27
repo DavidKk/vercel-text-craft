@@ -1,6 +1,7 @@
 'use client'
 
 import Meta from '@/components/Meta'
+
 import JsonFinder from './JsonFinder'
 
 const metaProps = {

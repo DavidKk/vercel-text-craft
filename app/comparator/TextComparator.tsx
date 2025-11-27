@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import TextCompareEditor from './TextCompareEditor'
+
 import Tabs from '@/components/Tabs'
-import { MOCK_TEXT_LIST, MOCK_JSON_LIST, MOCK_TOML_LIST } from './mock-data'
+
+import { MOCK_JSON_LIST, MOCK_TEXT_LIST, MOCK_TOML_LIST } from './mock-data'
+import TextCompareEditor from './TextCompareEditor'
 
 export default function TextComparator() {
   const [leftText, setLeftText] = useState('')

@@ -1,12 +1,14 @@
 'use client'
 
-import React, { useMemo, useId, useRef, useState } from 'react'
 import toml from '@iarna/toml'
 import FeatherIcon from 'feather-icons-react'
+import React, { useId, useMemo, useState } from 'react'
+
 import { isJson } from '@/utils/json'
-import { isToml } from '@/utils/toml'
 import { isProperties } from '@/utils/properties'
+import { isToml } from '@/utils/toml'
 import { isYaml } from '@/utils/yaml'
+
 import Codemirror, { type CodemirrorProps } from './Codemirror'
 import type { TextSegment } from './types'
 

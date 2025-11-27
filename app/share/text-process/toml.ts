@@ -1,4 +1,5 @@
 import * as TOML from '@iarna/toml'
+
 import type { TextSegmentPosition } from '@/components/Editor/types'
 
 /**

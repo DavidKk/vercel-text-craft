@@ -1,9 +1,11 @@
-import type { Metadata } from 'next'
-import { Analytics } from '@vercel/analytics/react'
-import { Geist, Geist_Mono } from 'next/font/google'
-import { Nav } from './Nav'
 import './globals.css'
+
+import { Analytics } from '@vercel/analytics/react'
+import type { Metadata } from 'next'
+import { Geist, Geist_Mono } from 'next/font/google'
+
 import Footer from './Footer'
+import { Nav } from './Nav'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',

@@ -1,5 +1,6 @@
 import { isJson } from '@/utils/json'
 import { isToml } from '@/utils/toml'
+
 import { isYaml } from './yaml'
 
 interface CodeBlock {
@@ -14,7 +15,7 @@ export function extractCodeBlocksFromMarkdown(markdown: string): CodeBlock[] {
 
   let match
   while ((match = codeBlockRegex.exec(markdown)) !== null) {
-    const [_, language, content] = match
+    const [, language, content] = match
     const trimmedContent = content.trim()
 
     let type: CodeBlock['type'] = 'unknown'

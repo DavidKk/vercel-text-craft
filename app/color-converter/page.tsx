@@ -1,4 +1,5 @@
 import Meta, { generate } from '@/components/Meta'
+
 import ColorConverter from './ColorConverter'
 
 const { generateMetadata, metaProps } = generate({

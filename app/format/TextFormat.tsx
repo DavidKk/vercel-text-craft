@@ -1,11 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useDebounce } from 'ahooks'
+import { useEffect, useState } from 'react'
+
 import ReactEditor from '@/components/Editor/ReactEditor'
 import FormatTabs from '@/components/FormatTabs'
-import { formatText } from '../json-extractor/utils'
 import { parseText } from '@/utils/parser'
+
+import { formatText } from '../json-extractor/utils'
 
 type FormatType = 'json' | 'toml' | 'yaml' | 'properties'
 

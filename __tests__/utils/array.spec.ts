@@ -1,13 +1,13 @@
 import {
-  checkArrayPrimitiveTypes,
   checkArrayContentConsistency,
+  checkArrayPrimitiveTypes,
+  checkArrayTypeConsistency,
   checkObjectStructure,
   findCompatibleArray,
-  checkArrayTypeConsistency,
   findLongestArray,
+  mergeArraysWithCheck,
   setValueByPath,
   transformToArrayType,
-  mergeArraysWithCheck,
 } from '@/utils/array'
 
 describe('Array Utility Functions', () => {

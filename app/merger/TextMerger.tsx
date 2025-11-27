@@ -1,24 +1,26 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
 import * as TOML from '@iarna/toml'
+import { useCallback, useMemo, useState } from 'react'
+
 import ReactEditor from '@/components/Editor/ReactEditor'
 import Tabs from '@/components/Tabs'
-import { isJson } from '@/utils/json'
-import { isToml } from '@/utils/toml'
-import { isYaml } from '@/utils/yaml'
 import {
   checkArrayContentConsistency,
+  checkArrayPrimitiveTypes,
+  checkArrayTypeConsistency,
   checkObjectStructure,
   findCompatibleArray,
-  checkArrayTypeConsistency,
   findLongestArray,
   setValueByPath,
-  checkArrayPrimitiveTypes,
   transformToArrayType,
 } from '@/utils/array'
+import { isJson } from '@/utils/json'
 import { extractCodeBlocksFromMarkdown } from '@/utils/markdown'
-import { MOCK_JSON_LIST, MOCK_JSON_APPEND_LIST, MOCK_TOML_LIST, MOCK_MARKDOWN_LIST } from './mock-data'
+import { isToml } from '@/utils/toml'
+import { isYaml } from '@/utils/yaml'
+
+import { MOCK_JSON_APPEND_LIST, MOCK_JSON_LIST, MOCK_MARKDOWN_LIST, MOCK_TOML_LIST } from './mock-data'
 
 type DataType = 'json' | 'toml' | 'yaml' | 'text'
 

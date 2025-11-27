@@ -1,4 +1,5 @@
 import Meta, { generate } from '@/components/Meta'
+
 import TextFormat from './TextFormat'
 
 const { generateMetadata, metaProps } = generate({

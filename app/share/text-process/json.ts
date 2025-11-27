@@ -1,4 +1,5 @@
 import { Parser } from 'acorn'
+
 import type { TextSegmentPosition } from '@/components/Editor/types'
 
 export function processJsonCollection(text: string): TextSegmentPosition[] {
