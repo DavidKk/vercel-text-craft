@@ -41,7 +41,7 @@
     "ahooks": "^3.8.4",
     "codemirror": "^6.0.1",
     "dot-properties": "^1.1.0",
-    "feather-icons-react": "^0.7.1",
+    "feather-icons-react": "^1.0.0",
     "js-yaml": "^4.3.2",
     "jsonwebtoken": "^9.0.2",
     "next": "15.5.9",
