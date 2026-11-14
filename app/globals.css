@@ -1,6 +1,18 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+/* Keep the existing JS config (theme extensions, animations) under Tailwind v4 */
+@config '../tailwind.config.ts';
+
+/* Tailwind v4 changed the default border color to currentColor; keep v3 behaviour */
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
 
 :root {
   --background: #ffffff;
