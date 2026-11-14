@@ -1,8 +1,8 @@
-import * as YAML from 'js-yaml'
+import { load as yamlLoad } from 'js-yaml'
 
 export function isYaml(text: string): boolean {
   try {
-    YAML.load(text)
+    yamlLoad(text)
     return true
   } catch (error) {
     return false
