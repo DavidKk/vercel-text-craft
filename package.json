@@ -42,10 +42,10 @@
     "codemirror": "^6.0.2",
     "dot-properties": "^1.1.2",
     "feather-icons-react": "^0.7.1",
-    "js-yaml": "^4.3.2",
+    "js-yaml": "^5.5.0",
     "jsonwebtoken": "^9.0.3",
     "next": "16.4.5",
-    "otplib": "^12.0.1",
+    "otplib": "^13.6.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-dropzone": "^14.3.5"

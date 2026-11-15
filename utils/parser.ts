@@ -1,5 +1,5 @@
 import * as TOML from '@iarna/toml'
-import * as YAML from 'js-yaml'
+import { load as yamlLoad } from 'js-yaml'
 
 import { isJson } from './json'
 import { isProperties, parsePropertiesText, propertiesToNestedJSON } from './properties'
@@ -48,7 +48,7 @@ export function parseText(text: string): ParsedData {
 
   // Try YAML
   try {
-    const parsedYaml = YAML.load(text)
+    const parsedYaml = yamlLoad(text)
     // YAML.load can return various types, including strings, numbers, etc.
     // We should only consider it a successful parse if it results in an object or array.
     if (typeof parsedYaml === 'object' && parsedYaml !== null) {
