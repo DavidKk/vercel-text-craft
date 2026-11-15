@@ -1,5 +1,5 @@
 import * as TOML from '@iarna/toml'
-import yaml from 'js-yaml'
+import { dump as yamlDump } from 'js-yaml'
 
 import { jsonToProperties, toPropertiesText } from '@/utils/properties'
 import { convertJsonValuetoJsonMap, convertToTomlCompatible } from '@/utils/toml'
@@ -19,7 +19,7 @@ export function formatText(text: string, format: FormatType): string {
         const tomlMap = convertJsonValuetoJsonMap(safeJson)
         return TOML.stringify(tomlMap)
       case 'yaml':
-        return yaml.dump(data)
+        return yamlDump(data)
       case 'properties':
         const flattened = jsonToProperties(data)
         const propertiesText = toPropertiesText(flattened)
