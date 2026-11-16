@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken'
+import jwt, { type Secret, type SignOptions } from 'jsonwebtoken'
 
 export function generateToken(payload: object) {
   const { JWT_SECRET, JWT_EXPIRES_IN } = getJWTConfig()
@@ -16,14 +16,14 @@ export function verifyToken(token: string) {
 
 function getJWTConfig() {
   const JWT_SECRET = process.env.JWT_SECRET
-  const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1d'
+  const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN || '1d') as NonNullable<SignOptions['expiresIn']>
 
   if (!JWT_SECRET) {
     throw new Error('process.env.JWT_SECRET is not defined')
   }
 
   return {
-    JWT_SECRET,
+    JWT_SECRET: JWT_SECRET as Secret,
     JWT_EXPIRES_IN,
   }
 }
